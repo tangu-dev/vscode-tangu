@@ -1,144 +1,144 @@
 {
-  "name": "vscode-tan",
-  "displayName": "Tan Language",
-  "description": "VSCode Extension for the Tan Language",
-  "author": "George Moschovitis",
-  "license": "Apache-2.0",
-  "version": "0.22.0",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/tanlang-org/vscode-tan"
-  },
-  "publisher": "tan-language",
-  "categories": [
-    "Programming Languages"
-  ],
-  "keywords": [
-    "tan"
-  ],
-  "engines": {
-    "vscode": "^1.86.0"
-  },
-  "main": "./dist/main.js",
-  "activationEvents": [
-    "workspaceContains:**/*.tan"
-  ],
-  "contributes": {
-    "languages": [
-      {
-        "id": "tan",
-        "extensions": [
-          ".tan"
+    "name": "vscode-tangu",
+    "displayName": "Tangu Language",
+    "description": "VSCode Extension for the Tangu language.",
+    "author": "George Moschovitis",
+    "license": "Apache-2.0",
+    "version": "0.22.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/tangu-dev/vscode-tangu"
+    },
+    "publisher": "tangu-language",
+    "categories": [
+        "Programming Languages"
+    ],
+    "keywords": [
+        "tangu"
+    ],
+    "engines": {
+        "vscode": "^1.86.0"
+    },
+    "main": "./dist/main.js",
+    "activationEvents": [
+        "workspaceContains:**/*.tan"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "tan",
+                "extensions": [
+                    ".tan"
+                ],
+                "aliases": [
+                    "Tangu",
+                    "Tangu Language"
+                ],
+                "icon": {
+                    "light": "./icons/light/tangu.svg",
+                    "dark": "./icons/dark/tangu.svg"
+                },
+                "filenames": [],
+                "firstLine": "^#!/.*\\btangu[0-9.-]*\\b",
+                "configuration": "./language-configuration.json"
+            }
         ],
-        "aliases": [
-          "Tan",
-          "Tan Language"
+        "grammars": [
+            {
+                "language": "tangu",
+                "scopeName": "source.tangu",
+                "path": "./syntaxes/tangu.tmLanguage.json",
+                "embeddedLanguages": {
+                    "meta.embedded.block.comment": "markdown"
+                }
+            },
+            {
+                "scopeName": "markdown.tangu.codeblock",
+                "path": "./syntaxes/tangu.codeblock.json",
+                "injectTo": [
+                    "text.html.markdown"
+                ],
+                "embeddedLanguages": {
+                    "meta.embedded.block.tangu": "tangu"
+                }
+            }
         ],
-        "icon": {
-          "light": "./icons/light/tan.svg",
-          "dark": "./icons/dark/tan.svg"
-        },
-        "filenames": [],
-        "firstLine": "^#!/.*\\btan[0-9.-]*\\b",
-        "configuration": "./language-configuration.json"
-      }
-    ],
-    "grammars": [
-      {
-        "language": "tan",
-        "scopeName": "source.tan",
-        "path": "./syntaxes/tan.tmLanguage.json",
-        "embeddedLanguages": {
-          "meta.embedded.block.comment": "markdown"
-        }
-      },
-      {
-        "scopeName": "markdown.tan.codeblock",
-        "path": "./syntaxes/tan.codeblock.json",
-        "injectTo": [
-          "text.html.markdown"
+        "commands": [
+            {
+                "command": "tangu.syntaxTree",
+                "title": "Show Syntax Tree",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.openREPL",
+                "title": "Open a REPL terminal",
+                "category": "Tangu"
+            }
         ],
-        "embeddedLanguages": {
-          "meta.embedded.block.tan": "tan"
+        "snippets": [
+            {
+                "language": "tangu",
+                "path": "./snippets.json"
+            }
+        ],
+        "configuration": {
+            "type": "object",
+            "title": "Tangu Language Server configuration",
+            "properties": {
+                "tangu.maxNumberOfProblems": {
+                    "scope": "resource",
+                    "type": "number",
+                    "default": 100,
+                    "description": "Controls the maximum number of problems produced by the server."
+                },
+                "tangu.trace.server": {
+                    "scope": "window",
+                    "type": "string",
+                    "enum": [
+                        "off",
+                        "messages",
+                        "verbose"
+                    ],
+                    "default": "verbose",
+                    "description": "Traces the communication between VS Code and the language server."
+                }
+            }
         }
-      }
-    ],
-    "commands": [
-      {
-        "command": "tan.syntaxTree",
-        "title": "Show Syntax Tree",
-        "category": "Tan"
-      },
-      {
-        "command": "tan.openREPL",
-        "title": "Open a REPL terminal",
-        "category": "Tan"
-      }
-    ],
-    "snippets": [
-      {
-        "language": "tan",
-        "path": "./snippets.json"
-      }
-    ],
-    "configuration": {
-      "type": "object",
-      "title": "Tan Language Server configuration",
-      "properties": {
-        "tan.maxNumberOfProblems": {
-          "scope": "resource",
-          "type": "number",
-          "default": 100,
-          "description": "Controls the maximum number of problems produced by the server."
-        },
-        "tan.trace.server": {
-          "scope": "window",
-          "type": "string",
-          "enum": [
-            "off",
-            "messages",
-            "verbose"
-          ],
-          "default": "verbose",
-          "description": "Traces the communication between VS Code and the language server."
-        }
-      }
+    },
+    "scripts": {
+        "compile": "node ./esbuild.js",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile && npm run lint",
+        "lint": "eslint src --ext ts",
+        "package": "vsce package",
+        "publish": "vsce publish",
+        "vscode:prepublish": "npm run esbuild-base -- --minify",
+        "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=dist/main.js --external:vscode --format=cjs --platform=node",
+        "esbuild": "npm run esbuild-base -- --sourcemap",
+        "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch"
+    },
+    "dependencies": {
+        "vscode-languageclient": "^8.0.2",
+        "vscode-languageserver": "^8.0.2"
+    },
+    "devDependencies": {
+        "@types/glob": "^7.2.0",
+        "@types/mocha": "^8.2.3",
+        "@types/node": "^12.20.55",
+        "@types/vscode": "1.70.0",
+        "@typescript-eslint/eslint-plugin": "^5.44.0",
+        "@typescript-eslint/parser": "^5.44.0",
+        "@vscode/codicons": "0.0.32",
+        "@vscode/vsce": "2.23.0",
+        "esbuild": "^0.14.54",
+        "eslint": "^8.28.0",
+        "glob": "^7.2.3",
+        "mocha": "^10.2.0",
+        "path-browserify": "^1.0.1",
+        "ts-loader": "^9.4.1",
+        "typescript": "^4.9.3",
+        "vscode-test": "^1.6.1",
+        "webpack": "^5.75.0",
+        "webpack-cli": "^4.10.0"
     }
-  },
-  "scripts": {
-    "compile": "node ./esbuild.js",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src --ext ts",
-    "package": "vsce package",
-    "publish": "vsce publish",
-    "vscode:prepublish": "npm run esbuild-base -- --minify",
-    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=dist/main.js --external:vscode --format=cjs --platform=node",
-    "esbuild": "npm run esbuild-base -- --sourcemap",
-    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch"
-  },
-  "dependencies": {
-    "vscode-languageclient": "^8.0.2",
-    "vscode-languageserver": "^8.0.2"
-  },
-  "devDependencies": {
-    "@types/glob": "^7.2.0",
-    "@types/mocha": "^8.2.3",
-    "@types/node": "^12.20.55",
-    "@types/vscode": "1.70.0",
-    "@typescript-eslint/eslint-plugin": "^5.44.0",
-    "@typescript-eslint/parser": "^5.44.0",
-    "@vscode/codicons": "0.0.32",
-    "@vscode/vsce": "2.23.0",
-    "esbuild": "^0.14.54",
-    "eslint": "^8.28.0",
-    "glob": "^7.2.3",
-    "mocha": "^10.2.0",
-    "path-browserify": "^1.0.1",
-    "ts-loader": "^9.4.1",
-    "typescript": "^4.9.3",
-    "vscode-test": "^1.6.1",
-    "webpack": "^5.75.0",
-    "webpack-cli": "^4.10.0"
-  }
 }

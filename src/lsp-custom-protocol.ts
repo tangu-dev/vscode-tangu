@@ -1,11 +1,11 @@
 import { NotificationType } from "vscode-languageclient";
 
 export interface PublishServerStatusParams {
-  text: string;
+    text: string;
 }
 
 export const publishServerStatusType = new NotificationType<
-  PublishServerStatusParams
+    PublishServerStatusParams
 >(
-  "tan/publishServerStatus",
+    "tangu/publishServerStatus",
 );

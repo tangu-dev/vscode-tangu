@@ -5,35 +5,35 @@ import { publishServerStatusType } from "./lsp-custom-protocol";
 
 // #todo what is a good name for this class?
 export class ServerStatusSubscription implements Disposable {
-  private subscriptions: Disposable[] = [];
-  private item: StatusBarItem;
+    private subscriptions: Disposable[] = [];
+    private item: StatusBarItem;
 
-  constructor(
-    client: LanguageClient,
-    private readonly _clientOutputChannel: vscode.OutputChannel,
-  ) {
-    this.item = vscode.window.createStatusBarItem(
-      vscode.StatusBarAlignment.Left,
-    );
-    this.item.text = "👅 starting";
-    this.item.tooltip = "Tan server";
-    this.item.show();
+    constructor(
+        client: LanguageClient,
+        private readonly _clientOutputChannel: vscode.OutputChannel,
+    ) {
+        this.item = vscode.window.createStatusBarItem(
+            vscode.StatusBarAlignment.Left,
+        );
+        this.item.text = "👅 Starting...";
+        this.item.tooltip = "Tangu server";
+        this.item.show();
 
-    this.subscriptions.push(
-      client.onNotification(
-        publishServerStatusType,
-        (notification) => {
-          this.item.text = notification.text;
-        },
-      ),
-    );
-  }
-
-  public dispose() {
-    for (const subscription of this.subscriptions) {
-      subscription.dispose();
+        this.subscriptions.push(
+            client.onNotification(
+                publishServerStatusType,
+                (notification) => {
+                    this.item.text = notification.text;
+                },
+            ),
+        );
     }
-    this.item.dispose();
-    this.item.hide();
-  }
+
+    public dispose() {
+        for (const subscription of this.subscriptions) {
+            subscription.dispose();
+        }
+        this.item.dispose();
+        this.item.hide();
+    }
 }

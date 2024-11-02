@@ -1,11 +1,11 @@
-# VSCode Tan Language Extension
+# VSCode Tangu Language Extension
 
-A Visual Studio Code (VSCode) extension for the Tan Language.
+A Visual Studio Code (VSCode) extension for the Tangu Language.
 
 ## Setup
 
 ```sh
-cd tan-language-server
+cd tangu-language-server
 cargo r
 ```
 
@@ -36,10 +36,10 @@ vsce package
 To install, go to the VSCode extensions sidebar and select
 `Install Extension VSIX` from the overflow menu (3 dots menu), top-right.
 
-Make sure the latest version of tan-language-server is installed:
+Make sure the latest version of tangu-language-server is installed:
 
 ```sh
-cargo install tan-language-server
+cargo install tangu-language-server
 ```
 
 To publish the extension to the Marketplace, run:
@@ -51,16 +51,16 @@ npm run publish
 ## Setup
 
 ```sh
-cargo install tan-language-server
+cargo install tangu-language-server
 ```
 
 ## Logging
 
-In the VSCode Output panel there are various Tan-related logging sinks:
+In the VSCode Output panel there are various Tangu-related logging sinks:
 
-- `Tan Language`: tan-language-server error logs (`eprintln!`)
-- `Tan Language Server Trace`: ??
-- `Tan Language Client`: show logs appended to the clientOutputChannel (_not_
+- `Tangu Language`: tangu-language-server error logs (`eprintln!`)
+- `Tangu Language Server Trace`: ??
+- `Tangu Language Client`: show logs appended to the clientOutputChannel (_not_
   console.log etc)
 - `Extension Host`: shows extension activation errors.
 

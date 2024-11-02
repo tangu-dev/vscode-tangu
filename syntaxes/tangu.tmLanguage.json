@@ -1,7 +1,7 @@
 {
     "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-    "name": "Tan",
-    "scopeName": "source.tan",
+    "name": "Tangu",
+    "scopeName": "source.tangu",
     "patterns": [
         {
             "include": "#all"
@@ -49,53 +49,53 @@
             ]
         },
         "comment_line_semicolon": {
-            "name": "comment.line.semicolon.tan",
+            "name": "comment.line.semicolon.tangu",
             "begin": ";",
             "end": "$"
         },
         "annotation": {
-            "name": "keyword.control.tan",
+            "name": "keyword.control.tangu",
             "begin": "\\#",
             "end": "\\s"
         },
         "def": {
-            "name": "keyword.control.tan",
+            "name": "keyword.control.tangu",
             "match": "\\b(def)\\b"
         },
         "let": {
-            "name": "keyword.control.tan",
+            "name": "keyword.control.tangu",
             "match": "\\b(let)\\b"
         },
         "for": {
-            "name": "keyword.control.tan",
+            "name": "keyword.control.tangu",
             "match": "\\b(for)\\b"
         },
         "if": {
-            "name": "keyword.control.tan",
+            "name": "keyword.control.tangu",
             "match": "\\b(if)\\b"
         },
         "cond": {
-            "name": "keyword.control.tan",
+            "name": "keyword.control.tangu",
             "match": "\\b(cond)\\b"
         },
         "else": {
-            "name": "keyword.control.tan",
+            "name": "keyword.control.tangu",
             "match": "\\b(else)\\b"
         },
         "use": {
-            "name": "keyword.control.import.tan",
+            "name": "keyword.control.import.tangu",
             "match": "\\b(use)\\b"
         },
         "return": {
-            "name": "keyword.control.import.tan",
+            "name": "keyword.control.import.tangu",
             "match": "\\b(return)\\b"
         },
         "continue": {
-            "name": "keyword.control.import.tan",
+            "name": "keyword.control.import.tangu",
             "match": "\\b(continue)\\b"
         },
         "break": {
-            "name": "keyword.control.import.tan",
+            "name": "keyword.control.import.tangu",
             "match": "\\b(break)\\b"
         }
     }
