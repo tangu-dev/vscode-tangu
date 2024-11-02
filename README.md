@@ -1,6 +1,6 @@
 # VSCode Tangu Language Extension
 
-A Visual Studio Code (VSCode) extension for the Tangu Language.
+A Visual Studio Code (VSCode) extension for the Tangu language.
 
 ## Setup
 
