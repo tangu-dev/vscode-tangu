@@ -1,15 +1,15 @@
 {
     "name": "vscode-tangu",
-    "displayName": "Tangu Language",
+    "displayName": "Tangu",
     "description": "VSCode Extension for the Tangu language.",
     "author": "George Moschovitis",
-    "license": "Apache-2.0",
-    "version": "0.22.0",
+    "license": "MPL-2.0",
+    "version": "0.30.0",
     "repository": {
         "type": "git",
         "url": "https://github.com/tangu-dev/vscode-tangu"
     },
-    "publisher": "tangu-language",
+    "publisher": "tangu-dev",
     "categories": [
         "Programming Languages"
     ],
@@ -26,7 +26,7 @@
     "contributes": {
         "languages": [
             {
-                "id": "tan",
+                "id": "tangu",
                 "extensions": [
                     ".tan"
                 ],
