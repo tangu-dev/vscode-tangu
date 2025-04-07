@@ -1,41 +1,50 @@
 {
-  "Function definition": {
-    "prefix": ["letf", "let-fn"],
-    "body": [
-      "(let ${1:name} (Func [${2:params}]",
-      "\t$0",
-      "))"
-    ],
-    "description": "A function definition"
-  },
-  "Test function definition": {
-    "prefix": ["lett", "let-test"],
-    "body": [
-      "(let test-${1:name} (Func ()",
-      "\t$0",
-      "))"
-    ],
-    "description": "A function definition"
-  },
-  "If-Else": {
-    "prefix": ["if-else"],
-    "body": [
-      "(if ${1:predicate}",
-      "\t(do",
-      "\t\t$2",
-      "\t)",
-      "\t(do",
-      "\t\t$3",
-      "\t)",
-      ")"
-    ],
-    "description": "An if-else block"
-  },
-  "Echo": {
-    "prefix": ["ech"],
-    "body": [
-      "(echo ${0})"
-    ],
-    "description": "An echo invocation"
-  }
+    "Function definition": {
+        "prefix": ["letf", "let-fn"],
+        "body": [
+            "(let ${1:name} (Func [${2:params}]",
+            "\t$0",
+            "))"
+        ],
+        "description": "A function definition"
+    },
+    "Test function definition": {
+        "prefix": ["lett", "let-test"],
+        "body": [
+            "(let test-${1:name} (Func ()",
+            "\t$0",
+            "))"
+        ],
+        "description": "A function definition"
+    },
+    "HTML Component function definition": {
+        "prefix": ["leth", "let-html"],
+        "body": [
+            "(let <${1:name}> (Func [...params]",
+            "\t$0",
+            "))"
+        ],
+        "description": "An HTML component definition"
+    },
+    "If-Else": {
+        "prefix": ["if-else"],
+        "body": [
+            "(if ${1:predicate}",
+            "\t(do",
+            "\t\t$2",
+            "\t)",
+            "\t(do",
+            "\t\t$3",
+            "\t)",
+            ")"
+        ],
+        "description": "An if-else block"
+    },
+    "Echo": {
+        "prefix": ["ech"],
+        "body": [
+            "(echo ${0})"
+        ],
+        "description": "An echo invocation"
+    }
 }
