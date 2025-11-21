@@ -4,7 +4,8 @@
     "description": "VSCode Extension for the Tangu language.",
     "author": "George Moschovitis",
     "license": "MPL-2.0",
-    "version": "0.32.0",
+    "version": "0.33.0",
+    "icon": "images/icon.png",
     "repository": {
         "type": "git",
         "url": "https://github.com/tangu-dev/vscode-tangu"
@@ -129,7 +130,7 @@
         "@typescript-eslint/eslint-plugin": "^8.29.0",
         "@typescript-eslint/parser": "^8.29.0",
         "@vscode/codicons": "^0.0.36",
-        "@vscode/vsce": "^3.6.0",
+        "@vscode/vsce": "^3.6.2",
         "esbuild": "^0.25.2",
         "eslint": "^8.57.0",
         "glob": "^11.0.1",
