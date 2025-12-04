@@ -36,17 +36,61 @@
                     "Tangu Language"
                 ],
                 "icon": {
-                    "light": "./icons/light/tangu.svg",
-                    "dark": "./icons/dark/tangu.svg"
+                    "light": "./icons/light/code.svg",
+                    "dark": "./icons/dark/code.svg"
                 },
                 "filenames": [],
                 "firstLine": "^#!/.*\\btangu[0-9.-]*\\b",
+                "configuration": "./language-configuration.json"
+            },
+            {
+                "id": "tangu-data",
+                "extensions": [
+                    ".data.tan"
+                ],
+                "aliases": [
+                    "Tangu Data"
+                ],
+                "icon": {
+                    "light": "./icons/light/data.svg",
+                    "dark": "./icons/dark/data.svg"
+                },
+                "configuration": "./language-configuration.json"
+            },
+            {
+                "id": "tangu-test",
+                "extensions": [
+                    ".test.tan"
+                ],
+                "aliases": [
+                    "Tangu Test"
+                ],
+                "icon": {
+                    "light": "./icons/light/test.svg",
+                    "dark": "./icons/dark/test.svg"
+                },
                 "configuration": "./language-configuration.json"
             }
         ],
         "grammars": [
             {
                 "language": "tangu",
+                "scopeName": "source.tangu",
+                "path": "./syntaxes/tangu.tmLanguage.json",
+                "embeddedLanguages": {
+                    "meta.embedded.block.comment": "markdown"
+                }
+            },
+            {
+                "language": "tangu-data",
+                "scopeName": "source.tangu",
+                "path": "./syntaxes/tangu.tmLanguage.json",
+                "embeddedLanguages": {
+                    "meta.embedded.block.comment": "markdown"
+                }
+            },
+            {
+                "language": "tangu-test",
                 "scopeName": "source.tangu",
                 "path": "./syntaxes/tangu.tmLanguage.json",
                 "embeddedLanguages": {
@@ -79,6 +123,14 @@
         "snippets": [
             {
                 "language": "tangu",
+                "path": "./snippets.json"
+            },
+            {
+                "language": "tangu-data",
+                "path": "./snippets.json"
+            },
+            {
+                "language": "tangu-test",
                 "path": "./snippets.json"
             }
         ],
