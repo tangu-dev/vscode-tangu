@@ -4,7 +4,7 @@
     "description": "VSCode Extension for the Tangu language.",
     "author": "George Moschovitis",
     "license": "MPL-2.0",
-    "version": "0.33.0",
+    "version": "0.34.0",
     "icon": "images/icon.png",
     "repository": {
         "type": "git",
@@ -154,6 +154,37 @@
                     ],
                     "default": "verbose",
                     "description": "Traces the communication between VS Code and the language server."
+                }
+            }
+        },
+        "semanticTokenScopes": [
+            {
+                "language": "tangu",
+                "scopes": {
+                    "variable.modification": ["variable.other.mutable.tangu"]
+                }
+            },
+            {
+                "language": "tangu-data",
+                "scopes": {
+                    "variable.modification": ["variable.other.mutable.tangu"]
+                }
+            },
+            {
+                "language": "tangu-test",
+                "scopes": {
+                    "variable.modification": ["variable.other.mutable.tangu"]
+                }
+            }
+        ],
+        "configurationDefaults": {
+            "editor.semanticTokenColorCustomizations": {
+                "[*]": {
+                    "rules": {
+                        "*.modification": {
+                            "fontStyle": "underline"
+                        }
+                    }
                 }
             }
         }

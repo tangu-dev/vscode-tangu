@@ -64,6 +64,71 @@ In the VSCode Output panel there are various Tangu-related logging sinks:
   console.log etc)
 - `Extension Host`: shows extension activation errors.
 
+## Customizing Syntax Highlighting
+
+The extension provides semantic token highlighting for Tangu code. You can
+customize the styling in your VS Code `settings.json`.
+
+### Mutable Variables
+
+By default, mutable variables (declared with `#var`) are displayed with an
+underline. To customize this:
+
+```json
+{
+    "editor.semanticTokenColorCustomizations": {
+        "rules": {
+            "*.modification": {
+                "fontStyle": "underline",
+                "foreground": "#ff6600"
+            }
+        }
+    }
+}
+```
+
+Available `fontStyle` options: `"bold"`, `"italic"`, `"underline"`,
+`"strikethrough"`, or combinations like `"bold underline"`.
+
+To disable the underline for mutable variables:
+
+```json
+{
+    "editor.semanticTokenColorCustomizations": {
+        "rules": {
+            "*.modification": {
+                "fontStyle": ""
+            }
+        }
+    }
+}
+```
+
+### Theme-Specific Customization
+
+You can also customize styling per theme:
+
+```json
+{
+    "editor.semanticTokenColorCustomizations": {
+        "[One Dark Pro]": {
+            "rules": {
+                "*.modification": {
+                    "fontStyle": "italic underline"
+                }
+            }
+        },
+        "[Default Light+]": {
+            "rules": {
+                "*.modification": {
+                    "foreground": "#d63200"
+                }
+            }
+        }
+    }
+}
+```
+
 ## Status
 
 This is an _experimental_ project, not intended for production use.
