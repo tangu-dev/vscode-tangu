@@ -1,5 +1,7 @@
 # Todo
 
+- [ ] Special highlighting for macros.
+- [ ] Special highlighting for imported names.
 - Add a REPL panel!
 - Disable the grammar for syntax highlighting, use only semantic tokens.
 - move syntaxes into syntaxes dir.

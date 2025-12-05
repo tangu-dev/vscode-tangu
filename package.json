@@ -183,6 +183,9 @@
                     "rules": {
                         "*.modification": {
                             "fontStyle": "underline"
+                        },
+                        "*.deprecated": {
+                            "fontStyle": "strikethrough"
                         }
                     }
                 }
