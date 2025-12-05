@@ -178,6 +178,15 @@
             }
         ],
         "configurationDefaults": {
+            "[tangu]": {
+                "editor.semanticHighlighting.enabled": true
+            },
+            "[tangu-data]": {
+                "editor.semanticHighlighting.enabled": true
+            },
+            "[tangu-test]": {
+                "editor.semanticHighlighting.enabled": true
+            },
             "editor.semanticTokenColorCustomizations": {
                 "[*]": {
                     "rules": {
