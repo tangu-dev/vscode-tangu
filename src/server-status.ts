@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { Disposable, StatusBarItem } from "vscode";
-import { LanguageClient } from "vscode-languageclient/node";
+import { LanguageClient, State } from "vscode-languageclient/node";
 import { publishServerStatusType } from "./lsp-custom-protocol";
 
 // #todo what is a good name for this class?
@@ -26,6 +26,16 @@ export class ServerStatusSubscription implements Disposable {
                     this.item.text = notification.text;
                 },
             ),
+        );
+
+        this.subscriptions.push(
+            client.onDidChangeState((event) => {
+                if (event.newState === State.Running) {
+                    this.item.text = "👅";
+                } else if (event.newState === State.Stopped) {
+                    this.item.text = "👅 Stopped";
+                }
+            }),
         );
     }
 
