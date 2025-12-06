@@ -57,5 +57,34 @@
             "(echo ${0})"
         ],
         "description": "An echo invocation"
+    },
+    "Use statement": {
+        "prefix": [
+            "use"
+        ],
+        "body": [
+            "(use {${2:names}} ${1:module})"
+        ],
+        "description": "A use statement"
+    },
+    "Assert": {
+        "prefix": [
+            "ass",
+            "assert"
+        ],
+        "body": [
+            "(assert ${0})"
+        ],
+        "description": "An assert invocation"
+    },
+    "Assert equals": {
+        "prefix": [
+            "asse",
+            "assert-eq"
+        ],
+        "body": [
+            "(assert-eq ${1:expected} ${2:actual})"
+        ],
+        "description": "An assert-eq invocation"
     }
 }
