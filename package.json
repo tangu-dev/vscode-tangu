@@ -161,19 +161,34 @@
             {
                 "language": "tangu",
                 "scopes": {
-                    "variable.modification": ["variable.other.mutable.tangu"]
+                    "variable.modification": [
+                        "variable.other.mutable.tangu"
+                    ],
+                    "decorator": [
+                        "entity.name.tag.tangu"
+                    ]
                 }
             },
             {
                 "language": "tangu-data",
                 "scopes": {
-                    "variable.modification": ["variable.other.mutable.tangu"]
+                    "variable.modification": [
+                        "variable.other.mutable.tangu"
+                    ],
+                    "decorator": [
+                        "entity.name.tag.tangu"
+                    ]
                 }
             },
             {
                 "language": "tangu-test",
                 "scopes": {
-                    "variable.modification": ["variable.other.mutable.tangu"]
+                    "variable.modification": [
+                        "variable.other.mutable.tangu"
+                    ],
+                    "decorator": [
+                        "entity.name.tag.tangu"
+                    ]
                 }
             }
         ],
