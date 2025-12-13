@@ -67,7 +67,7 @@ function openREPLTerminal(): Thenable<vscode.Terminal> {
         vscode.window.terminals.find((t) =>
             t.name === TANGU_REPL_TERMINAL_NAME
         ) ??
-            createREPLTerminal();
+        createREPLTerminal();
 
     return Promise.resolve(terminal).then((t) => {
         t.show();
@@ -120,10 +120,14 @@ export function activate(context: ExtensionContext) {
     };
 
     const clientOptions: LanguageClientOptions = {
-        documentSelector: [{ scheme: "file", language: "tangu" }],
+        documentSelector: [
+            { scheme: "file", language: "tangu" },
+            { scheme: "file", language: "tangu-data" },
+            { scheme: "file", language: "tangu-test" },
+        ],
         traceOutputChannel: serverTraceOutputChannel,
         synchronize: {
-            fileEvents: workspace.createFileSystemWatcher("**/*.tangu"),
+            fileEvents: workspace.createFileSystemWatcher("**/*.tan"),
         },
     };
 
