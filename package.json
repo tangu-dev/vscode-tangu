@@ -194,13 +194,16 @@
         ],
         "configurationDefaults": {
             "[tangu]": {
-                "editor.semanticHighlighting.enabled": true
+                "editor.semanticHighlighting.enabled": true,
+                "editor.inlayHints.enabled": "on"
             },
             "[tangu-data]": {
-                "editor.semanticHighlighting.enabled": true
+                "editor.semanticHighlighting.enabled": true,
+                "editor.inlayHints.enabled": "on"
             },
             "[tangu-test]": {
-                "editor.semanticHighlighting.enabled": true
+                "editor.semanticHighlighting.enabled": true,
+                "editor.inlayHints.enabled": "on"
             },
             "editor.semanticTokenColorCustomizations": {
                 "[*]": {

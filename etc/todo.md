@@ -1,5 +1,6 @@
 # Todo
 
+- [ ] Add settings ui.
 - [ ] Special highlighting for compile-time code.
 - [ ] Special highlighting for dyn-scoped variables.
 - [ ] Special highlighting for macros.
