@@ -4,7 +4,7 @@
     "description": "VSCode Extension for the Tangu language.",
     "author": "George Moschovitis",
     "license": "MPL-2.0",
-    "version": "0.34.0",
+    "version": "0.35.0",
     "icon": "images/icon.png",
     "repository": {
         "type": "git",
@@ -164,6 +164,9 @@
                     "variable.modification": [
                         "variable.other.mutable.tangu"
                     ],
+                    "*.effectful": [
+                        "entity.name.effectful.tangu"
+                    ],
                     "decorator": [
                         "entity.name.tag.tangu"
                     ]
@@ -175,6 +178,9 @@
                     "variable.modification": [
                         "variable.other.mutable.tangu"
                     ],
+                    "*.effectful": [
+                        "entity.name.effectful.tangu"
+                    ],
                     "decorator": [
                         "entity.name.tag.tangu"
                     ]
@@ -185,6 +191,9 @@
                 "scopes": {
                     "variable.modification": [
                         "variable.other.mutable.tangu"
+                    ],
+                    "*.effectful": [
+                        "entity.name.effectful.tangu"
                     ],
                     "decorator": [
                         "entity.name.tag.tangu"
@@ -210,6 +219,9 @@
                     "rules": {
                         "*.modification": {
                             "fontStyle": "underline"
+                        },
+                        "*.effectful": {
+                            "fontStyle": "italic"
                         },
                         "*.deprecated": {
                             "fontStyle": "strikethrough"
