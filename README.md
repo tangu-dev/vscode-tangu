@@ -69,6 +69,10 @@ In the VSCode Output panel there are various Tangu-related logging sinks:
 The extension provides semantic token highlighting for Tangu code. You can
 customize the styling in your VS Code `settings.json`.
 
+By default, trait/interface symbols (semantic token type `interface`) are styled
+with a dim cool color (`#7A8CA5`) and concrete type tokens are not bold. You can
+override this in your own semantic token customizations.
+
 ### Mutable Variables
 
 By default, mutable variables (declared with `#var`) are displayed with an
