@@ -118,6 +118,11 @@
                 "command": "tangu.openREPL",
                 "title": "Open a REPL terminal",
                 "category": "Tangu"
+            },
+            {
+                "command": "tangu.requestFullWorkspaceDiagnostics",
+                "title": "Run Full Workspace Diagnostics",
+                "category": "Tangu"
             }
         ],
         "snippets": [

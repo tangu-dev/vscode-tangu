@@ -23,6 +23,14 @@ const TANGU_LANGUAGE_SERVER = "tangu-language-server";
 /// The name of the Tangu REPL terminal.
 const TANGU_REPL_TERMINAL_NAME = "Tangu REPL";
 
+/// The LSP executeCommand ID for full workspace diagnostics.
+const RUN_FULL_WORKSPACE_DIAGNOSTICS_SERVER_COMMAND =
+    "tangu.runFullWorkspaceDiagnostics";
+
+/// The VS Code command ID for requesting full workspace diagnostics.
+const RUN_FULL_WORKSPACE_DIAGNOSTICS_VSCODE_COMMAND =
+    "tangu.requestFullWorkspaceDiagnostics";
+
 let client: LanguageClient;
 
 function executableExists(name: string): boolean {
@@ -67,12 +75,49 @@ function openREPLTerminal(): Thenable<vscode.Terminal> {
         vscode.window.terminals.find((t) =>
             t.name === TANGU_REPL_TERMINAL_NAME
         ) ??
-        createREPLTerminal();
+            createREPLTerminal();
 
     return Promise.resolve(terminal).then((t) => {
         t.show();
         return t;
     });
+}
+
+/** Requests full workspace diagnostics from the language server. */
+async function requestFullWorkspaceDiagnostics(
+    outputChannel: vscode.OutputChannel,
+): Promise<void> {
+    if (!client) {
+        void vscode.window.showErrorMessage(
+            "Tangu language server is not ready yet.",
+        );
+        return;
+    }
+
+    outputChannel.appendLine("Request full workspace diagnostics");
+
+    try {
+        await client.sendRequest("workspace/executeCommand", {
+            command: RUN_FULL_WORKSPACE_DIAGNOSTICS_SERVER_COMMAND,
+            arguments: [],
+        });
+
+        void vscode.window.showInformationMessage(
+            "Tangu: Requested full workspace diagnostics.",
+        );
+    } catch (error) {
+        const message = error instanceof Error
+            ? error.message
+            : "Unknown error";
+
+        outputChannel.appendLine(
+            `Failed to request full workspace diagnostics: ${message}`,
+        );
+
+        void vscode.window.showErrorMessage(
+            "Tangu: Failed to request full workspace diagnostics.",
+        );
+    }
 }
 
 /** Activates the extension. */
@@ -137,6 +182,11 @@ export function activate(context: ExtensionContext) {
             clientOutputChannel.appendLine("Open REPL");
             openREPLTerminal();
         },
+    ));
+
+    context.subscriptions.push(vscode.commands.registerCommand(
+        RUN_FULL_WORKSPACE_DIAGNOSTICS_VSCODE_COMMAND,
+        () => requestFullWorkspaceDiagnostics(clientOutputChannel),
     ));
 
     context.subscriptions.push(
