@@ -71,7 +71,7 @@ function createREPLTerminal(): Thenable<vscode.Terminal> {
  * is reused.
  */
 function openREPLTerminal(): Thenable<vscode.Terminal> {
-    let terminal =
+    const terminal =
         vscode.window.terminals.find((t) =>
             t.name === TANGU_REPL_TERMINAL_NAME
         ) ??
@@ -191,7 +191,7 @@ export function activate(context: ExtensionContext) {
     ));
 
     context.subscriptions.push(
-        vscode.commands.registerCommand("tangu.syntaxTree", (args) => {
+        vscode.commands.registerCommand("tangu.syntaxTree", () => {
             // #todo
         }),
     );

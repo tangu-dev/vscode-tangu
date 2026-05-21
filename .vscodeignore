@@ -6,3 +6,5 @@ esbuild.js
 tsconfig.json
 update.sh
 **.*.vsix
+.eslintrc.json
+.eslintcache
