@@ -4,7 +4,7 @@
     "description": "VSCode Extension for the Tangu language.",
     "author": "George Moschovitis",
     "license": "MPL-2.0",
-    "version": "0.36.0",
+    "version": "0.37.0",
     "icon": "images/icon.png",
     "repository": {
         "type": "git",
