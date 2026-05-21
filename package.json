@@ -70,6 +70,20 @@
                     "dark": "./icons/dark/test.svg"
                 },
                 "configuration": "./language-configuration.json"
+            },
+            {
+                "id": "tangu-schema",
+                "extensions": [
+                    ".schema.tan"
+                ],
+                "aliases": [
+                    "Tangu Schema"
+                ],
+                "icon": {
+                    "light": "./icons/light/schema.svg",
+                    "dark": "./icons/dark/schema.svg"
+                },
+                "configuration": "./language-configuration.json"
             }
         ],
         "grammars": [
@@ -91,6 +105,14 @@
             },
             {
                 "language": "tangu-test",
+                "scopeName": "source.tangu",
+                "path": "./syntaxes/tangu.tmLanguage.json",
+                "embeddedLanguages": {
+                    "meta.embedded.block.comment": "markdown"
+                }
+            },
+            {
+                "language": "tangu-schema",
                 "scopeName": "source.tangu",
                 "path": "./syntaxes/tangu.tmLanguage.json",
                 "embeddedLanguages": {
@@ -136,6 +158,10 @@
             },
             {
                 "language": "tangu-test",
+                "path": "./snippets.json"
+            },
+            {
+                "language": "tangu-schema",
                 "path": "./snippets.json"
             }
         ],
@@ -213,6 +239,23 @@
                         "entity.name.tag.tangu"
                     ]
                 }
+            },
+            {
+                "language": "tangu-schema",
+                "scopes": {
+                    "variable.modification": [
+                        "variable.other.mutable.tangu"
+                    ],
+                    "interface": [
+                        "entity.name.type.interface.tangu"
+                    ],
+                    "*.effectful": [
+                        "entity.name.effectful.tangu"
+                    ],
+                    "decorator": [
+                        "entity.name.tag.tangu"
+                    ]
+                }
             }
         ],
         "configurationDefaults": {
@@ -225,6 +268,10 @@
                 "editor.inlayHints.enabled": "on"
             },
             "[tangu-test]": {
+                "editor.semanticHighlighting.enabled": true,
+                "editor.inlayHints.enabled": "on"
+            },
+            "[tangu-schema]": {
                 "editor.semanticHighlighting.enabled": true,
                 "editor.inlayHints.enabled": "on"
             },

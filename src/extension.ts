@@ -169,6 +169,7 @@ export function activate(context: ExtensionContext) {
             { scheme: "file", language: "tangu" },
             { scheme: "file", language: "tangu-data" },
             { scheme: "file", language: "tangu-test" },
+            { scheme: "file", language: "tangu-schema" },
         ],
         traceOutputChannel: serverTraceOutputChannel,
         synchronize: {
