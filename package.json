@@ -4,7 +4,7 @@
     "description": "VSCode Extension for the Tangu language.",
     "author": "George Moschovitis",
     "license": "MPL-2.0",
-    "version": "0.38.0",
+    "version": "0.39.0",
     "icon": "images/icon.png",
     "repository": {
         "type": "git",
@@ -134,6 +134,11 @@
             {
                 "command": "tangu.syntaxTree",
                 "title": "Show Syntax Tree",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.expandMacro",
+                "title": "Expand Macro at Cursor",
                 "category": "Tangu"
             },
             {

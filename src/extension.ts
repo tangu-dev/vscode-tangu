@@ -191,6 +191,57 @@ export function activate(context: ExtensionContext) {
     ));
 
     context.subscriptions.push(
+        vscode.commands.registerCommand("tangu.expandMacro", async () => {
+            const editor = vscode.window.activeTextEditor;
+            if (!editor) {
+                void vscode.window.showWarningMessage("No active editor.");
+                return;
+            }
+
+            if (!client) {
+                void vscode.window.showErrorMessage("Tangu language server is not ready yet.");
+                return;
+            }
+
+            const position = editor.selection.active;
+            const uri = editor.document.uri.toString();
+
+            try {
+                const response = await client.sendRequest<{
+                    uri: string;
+                    range?: vscode.Range;
+                    original: string;
+                    expanded: string;
+                    success: boolean;
+                    message?: string;
+                }>("workspace/executeCommand", {
+                    command: "tangu.expandMacro",
+                    arguments: [{ uri, position: { line: position.line, character: position.character } }],
+                });
+
+                if (response && response.success) {
+                    const content = `; Macro Expansion of:\n; ${response.original.split("\n").join("\n; ")}\n\n${response.expanded}\n`;
+                    const doc = await vscode.workspace.openTextDocument({
+                        language: "tangu",
+                        content,
+                    });
+                    await vscode.window.showTextDocument(doc, {
+                        viewColumn: vscode.ViewColumn.Beside,
+                        preview: true,
+                    });
+                } else {
+                    const msg = response?.message ?? "Could not expand macro at cursor.";
+                    void vscode.window.showWarningMessage(`Tangu: ${msg}`);
+                }
+            } catch (error) {
+                const message = error instanceof Error ? error.message : "Unknown error";
+                clientOutputChannel.appendLine(`Failed to expand macro: ${message}`);
+                void vscode.window.showErrorMessage(`Tangu: Failed to expand macro: ${message}`);
+            }
+        }),
+    );
+
+    context.subscriptions.push(
         vscode.commands.registerCommand("tangu.syntaxTree", () => {
             // #todo
         }),
