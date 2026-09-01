@@ -31,6 +31,9 @@ const RUN_FULL_WORKSPACE_DIAGNOSTICS_SERVER_COMMAND =
 const RUN_FULL_WORKSPACE_DIAGNOSTICS_VSCODE_COMMAND =
     "tangu.requestFullWorkspaceDiagnostics";
 
+/// The LSP executeCommand ID for macro expansion.
+const EXPAND_MACRO_SERVER_COMMAND = "tangu.expandMacroServer";
+
 let client: LanguageClient;
 
 function executableExists(name: string): boolean {
@@ -215,7 +218,7 @@ export function activate(context: ExtensionContext) {
                     success: boolean;
                     message?: string;
                 }>("workspace/executeCommand", {
-                    command: "tangu.expandMacro",
+                    command: EXPAND_MACRO_SERVER_COMMAND,
                     arguments: [{ uri, position: { line: position.line, character: position.character } }],
                 });
 
