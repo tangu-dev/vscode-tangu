@@ -178,6 +178,103 @@ export function activate(context: ExtensionContext) {
         synchronize: {
             fileEvents: workspace.createFileSystemWatcher("**/*.tan"),
         },
+        middleware: {
+            provideCodeLenses: async (document, token, next) => {
+                const lenses = await next(document, token);
+                if (!lenses) {
+                    return lenses;
+                }
+                for (const lens of lenses) {
+                    const cmd = lens.command;
+                    if (
+                        cmd &&
+                        cmd.command === "editor.action.showReferences" &&
+                        Array.isArray(cmd.arguments) &&
+                        cmd.arguments.length >= 3
+                    ) {
+                        const rawUri = cmd.arguments[0];
+                        const rawPos = cmd.arguments[1];
+                        const rawLocs = cmd.arguments[2];
+
+                        const toVsUri = (u: any): vscode.Uri => {
+                            if (u instanceof vscode.Uri) {
+                                return u;
+                            }
+                            if (typeof u === "string") {
+                                return vscode.Uri.parse(u);
+                            }
+                            if (u && typeof u.external === "string") {
+                                return vscode.Uri.parse(u.external);
+                            }
+                            if (u && typeof u.path === "string") {
+                                return vscode.Uri.file(u.path);
+                            }
+                            return document.uri;
+                        };
+
+                        const toVsPosition = (p: any): vscode.Position => {
+                            if (p instanceof vscode.Position) {
+                                return p;
+                            }
+                            if (p && typeof p.lineNumber === "number" && typeof p.column === "number") {
+                                return new vscode.Position(
+                                    Math.max(0, p.lineNumber - 1),
+                                    Math.max(0, p.column - 1),
+                                );
+                            }
+                            if (p && typeof p.line === "number" && typeof p.character === "number") {
+                                return new vscode.Position(p.line, p.character);
+                            }
+                            return new vscode.Position(0, 0);
+                        };
+
+                        const toVsRange = (r: any): vscode.Range => {
+                            if (r instanceof vscode.Range) {
+                                return r;
+                            }
+                            if (
+                                r &&
+                                typeof r.startLineNumber === "number" &&
+                                typeof r.startColumn === "number" &&
+                                typeof r.endLineNumber === "number" &&
+                                typeof r.endColumn === "number"
+                            ) {
+                                return new vscode.Range(
+                                    Math.max(0, r.startLineNumber - 1),
+                                    Math.max(0, r.startColumn - 1),
+                                    Math.max(0, r.endLineNumber - 1),
+                                    Math.max(0, r.endColumn - 1),
+                                );
+                            }
+                            if (r && r.start && r.end) {
+                                return new vscode.Range(
+                                    toVsPosition(r.start),
+                                    toVsPosition(r.end),
+                                );
+                            }
+                            return new vscode.Range(0, 0, 0, 0);
+                        };
+
+                        const uri = toVsUri(rawUri);
+                        const pos = toVsPosition(rawPos);
+                        const locs = Array.isArray(rawLocs)
+                            ? rawLocs.map(
+                                  (loc: any) =>
+                                      loc instanceof vscode.Location
+                                          ? loc
+                                          : new vscode.Location(
+                                                toVsUri(loc.uri),
+                                                toVsRange(loc.range),
+                                            ),
+                              )
+                            : [];
+
+                        cmd.arguments = [uri, pos, locs];
+                    }
+                }
+                return lenses;
+            },
+        },
     };
 
     context.subscriptions.push(vscode.commands.registerCommand(
