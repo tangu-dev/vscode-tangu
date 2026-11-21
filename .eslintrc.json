@@ -18,6 +18,7 @@
     },
     "ignorePatterns": [
         "out",
+        "out-test",
         "dist",
         "node_modules",
         "esbuild.js"

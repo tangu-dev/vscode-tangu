@@ -1,85 +1,60 @@
 # Developer & Agent Guide for `vscode-tangu`
 
-This document is designed to help AI agents and human developers quickly orient themselves in the `vscode-tangu` repository, understand the extension's structure, run common tasks, and package new versions.
+This document helps AI agents and human developers navigate `vscode-tangu`, run checks, and package releases.
 
 ---
 
-## 🏗️ Repository Architecture
+## Architecture
 
-The extension acts as a Visual Studio Code client for the `tangu-language-server` (LSP backend).
+`vscode-tangu` acts as the VS Code client for `tangu-language-server` (LSP) and integrates directly with the `tangu` CLI for test discovery/execution, AST/IR dumps, formatting fixes, and diagnostics.
 
-### Core Files
-*   **[package.json](package.json)**: Extends VS Code with language contributions (`tangu`, `tangu-data`, `tangu-test`, `tangu-schema`), custom commands, configurations, and build scripts.
-*   **[language-configuration.json](language-configuration.json)**: Defines editor behavior such as bracket matching, auto-closing pairs, folding markers, and indentation rules.
-*   **[snippets.json](snippets.json)**: Defines templates/snippets for Tangu structures.
-*   **[syntaxes/tangu.tmLanguage.json](syntaxes/tangu.tmLanguage.json)**: Basic TextMate grammar for fallback token highlighting.
+### Manifest & Syntax Files
+- [package.json](package.json): Language IDs (`tangu`, `tangu-data`, `tangu-test`, `tangu-schema`), commands, menus, keybindings, settings, task definitions, `$tangu` problem matcher, and language-scoped semantic token defaults.
+- [language-configuration.json](language-configuration.json): Brackets, auto-closing pairs, folding markers, indentation rules, and Tangu `wordPattern`.
+- [snippets.json](snippets.json) & [snippets-test.json](snippets-test.json): Core idiomatic snippets and `tangu-test`-scoped test snippets.
+- [syntaxes/tangu.tmLanguage.json](syntaxes/tangu.tmLanguage.json) & [syntaxes/tangu.codeblock.json](syntaxes/tangu.codeblock.json): TextMate grammar (strings, interpolations, `#sql`/`#html`/Markdown embeddings) and Markdown ```` ```tan ```` / ```` ```tangu ```` fence injection.
 
-### Source Files
-*   **[src/extension.ts](src/extension.ts)**: Extension activator. Handles executable existence checks, configures/launches the `vscode-languageclient`, and registers client commands like opening the REPL terminal.
-*   **[src/server-status.ts](src/server-status.ts)**: Subscribes to LSP notifications to display server status in the VS Code status bar (using the `👅` emoji indicator).
-*   **[src/lsp-custom-protocol.ts](src/lsp-custom-protocol.ts)**: Declares custom LSP methods used for server-to-client communication.
+### Source Layout (`src/`)
+Pure logic modules have **zero `vscode` imports** so Mocha tests run natively in Node without VS Code mocks:
+- [src/extension.ts](src/extension.ts): Extension activation, lifecycle, restart handling, config sync, and CLI utility commands (`runFix`, `runDoctor`, `runFile`).
+- [src/config-logic.ts](src/config-logic.ts) & [src/config.ts](src/config.ts): Explicit-only `config.inspect()` override builder, cross-platform binary resolution, and server env builder.
+- [src/codelens-normalize.ts](src/codelens-normalize.ts) & [src/codelens-middleware.ts](src/codelens-middleware.ts): Argument coercion for both `provideCodeLenses` and `resolveCodeLens`, plus optional filtering of test CodeLenses.
+- [src/lsp-custom-protocol.ts](src/lsp-custom-protocol.ts) & [src/server-status.ts](src/server-status.ts): Status bar item (`👅`) subscribing to `tangu/publishServerStatus` (and legacy `tan/publishServerStatus`).
+- [src/cli-runner.ts](src/cli-runner.ts): `child_process.spawn(..., { shell: false })` runner with timeout, output cap, stdin piping, and `AbortSignal`.
+- [src/eval-repl.ts](src/eval-repl.ts): Inline LSP expression evaluation decorations (`Tangu Eval`) and REPL terminal commands.
+- [src/preview-provider.ts](src/preview-provider.ts): Read-only `tangu-preview://` tabs with debounced/cancellable live refresh for macro expansion, AST, delimiters, JS, TIR, and CLIF.
+- [src/test-protocol.ts](src/test-protocol.ts) & [src/test-controller.ts](src/test-controller.ts): Native VS Code `TestController` backed by `tangu test --list --json` and `tangu test --json`.
+- [src/task-provider.ts](src/task-provider.ts): Workspace task provider for `tangu`.
+- [src/sexp-core.ts](src/sexp-core.ts) & [src/sexp.ts](src/sexp.ts): S-expression scanner, REPL normalization, and structural editing commands.
 
 ---
 
-## 🛠️ Build and Development Workflow
+## Development & Verification
 
-### Prerequisites
-Install all dependencies first:
 ```bash
 npm install
+npm run typecheck
+npm run lint
+npm test
+npm run compile
 ```
 
-### Compiling and Bundling
-The extension uses `esbuild` to compile TypeScript to a bundled CommonJS bundle (`dist/main.js`).
-
-*   **One-time compilation**:
-    ```bash
-    npm run compile
-    ```
-*   **Watch mode (auto-recompiling TypeScript changes)**:
-    ```bash
-    npm run esbuild-watch
-    ```
+Bundling runs through `esbuild.js` to produce `dist/main.js`.
 
 ---
 
-## 📦 Packaging and Releasing
+## Packaging & Releasing
 
-To package a new version of the extension into a `.vsix` file that can be distributed or side-loaded:
-
-### 1. Version Bump
-Update the `"version"` field in the `package.json` to the target version (e.g. `0.37.0`).
-
-### 2. Run Packaging
-Use the packaging script which calls `@vscode/vsce` internally:
-```bash
-npm run package
-```
-*Alternatively*, if you have `vsce` installed globally:
-```bash
-vsce package
-```
-This produces a file named `vscode-tangu-<version>.vsix` in the root directory.
-
-### 3. Publishing (Marketplace)
-To publish the extension directly to the VS Code Marketplace:
-```bash
-npm run publish
-```
-*Note: This command requires you to be logged into your publisher account or have a Personal Access Token (PAT) configured.*
-
-### 4. Side-loading (.vsix Installation)
-To install the compiled `.vsix` in VS Code manually:
-1. Open the Extensions sidebar (`Ctrl+Shift+X`).
-2. Click the `...` menu (Views and More Actions) in the top-right corner of the sidebar.
-3. Select **Install from VSIX...** and select the generated file.
-
----
-
-## 💡 Key Development Tips for Agents
-
-1.  **Indentation rules are bracket-based**: Tangu is an s-expression language. Indentation rules are configured in `language-configuration.json` to indent automatically on unclosed opening brackets `(`, `[`, `{` and outdent on closing brackets `)`, `]`, `}`. Semicolon comments (`;`) are ignored by the parser regex.
-2.  **Windows executable compatibility**: If you modify path verification logic, remember that Windows executables end with `.exe`. Ensure checks in `src/extension.ts` check for both the raw executable names (`tangu`, `tangu-language-server`) and their `.exe` suffix on `win32` platforms.
-3.  **LSP Logging Sinks**: Look in the VS Code Output panel under:
-    *   `Tangu Language Client` for client log messages.
-    *   `Tangu Language Server Trace` for JSON-RPC message logs.
+1. Update `"version"` in `package.json` and document changes in `CHANGELOG.md`.
+2. Verify packaged files:
+   ```bash
+   npx vsce ls
+   ```
+3. Package `.vsix` and attach it to a GitHub Release:
+   ```bash
+   npm run package
+   ```
+4. (Optional) Publish to the VS Code Marketplace when publisher credentials are configured:
+   ```bash
+   npm run publish
+   ```

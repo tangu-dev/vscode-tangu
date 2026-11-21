@@ -1,4 +1,6 @@
-**.*.vsix
+*.vsix
 /out
+/out-test
 /node_modules
 /dist
+.eslintcache

@@ -1,28 +1,47 @@
 {
     "name": "vscode-tangu",
     "displayName": "Tangu",
-    "description": "VSCode Extension for the Tangu language.",
+    "description": "Visual Studio Code extension for the Tangu programming language — LSP, Test Explorer, REPL, inline eval, and live compiler previews.",
     "author": "George Moschovitis",
     "license": "MPL-2.0",
-    "version": "0.39.0",
+    "version": "0.40.0",
     "icon": "images/icon.png",
+    "homepage": "https://tangu.dev",
+    "bugs": {
+        "url": "https://github.com/tangu-dev/vscode-tangu/issues"
+    },
     "repository": {
         "type": "git",
         "url": "https://github.com/tangu-dev/vscode-tangu"
     },
     "publisher": "tangu-dev",
     "categories": [
-        "Programming Languages"
+        "Programming Languages",
+        "Linters",
+        "Formatters",
+        "Snippets",
+        "Testing"
     ],
     "keywords": [
-        "tangu"
+        "tangu",
+        "lisp",
+        "s-expression",
+        "lsp",
+        "language-server"
     ],
+    "capabilities": {
+        "untrustedWorkspaces": {
+            "supported": "limited",
+            "description": "Syntax highlighting, snippets, structural editing, and user-configured LSP features work in Restricted Mode. Running Tangu files, tests, REPL/eval, macro/IR previews, CLI fix/doctor, and workspace-level binary/env/config overrides requires a trusted workspace."
+        }
+    },
     "engines": {
         "vscode": "^1.99.0"
     },
     "main": "./dist/main.js",
     "activationEvents": [
-        "workspaceContains:**/*.tan"
+        "workspaceContains:manifest.data.tan",
+        "workspaceContains:.tangu/config.data.tan"
     ],
     "contributes": {
         "languages": [
@@ -92,7 +111,9 @@
                 "scopeName": "source.tangu",
                 "path": "./syntaxes/tangu.tmLanguage.json",
                 "embeddedLanguages": {
-                    "meta.embedded.block.comment": "markdown"
+                    "meta.embedded.block.comment": "markdown",
+                    "meta.embedded.inline.sql": "sql",
+                    "meta.embedded.inline.html": "html"
                 }
             },
             {
@@ -100,7 +121,9 @@
                 "scopeName": "source.tangu",
                 "path": "./syntaxes/tangu.tmLanguage.json",
                 "embeddedLanguages": {
-                    "meta.embedded.block.comment": "markdown"
+                    "meta.embedded.block.comment": "markdown",
+                    "meta.embedded.inline.sql": "sql",
+                    "meta.embedded.inline.html": "html"
                 }
             },
             {
@@ -108,7 +131,9 @@
                 "scopeName": "source.tangu",
                 "path": "./syntaxes/tangu.tmLanguage.json",
                 "embeddedLanguages": {
-                    "meta.embedded.block.comment": "markdown"
+                    "meta.embedded.block.comment": "markdown",
+                    "meta.embedded.inline.sql": "sql",
+                    "meta.embedded.inline.html": "html"
                 }
             },
             {
@@ -116,7 +141,9 @@
                 "scopeName": "source.tangu",
                 "path": "./syntaxes/tangu.tmLanguage.json",
                 "embeddedLanguages": {
-                    "meta.embedded.block.comment": "markdown"
+                    "meta.embedded.block.comment": "markdown",
+                    "meta.embedded.inline.sql": "sql",
+                    "meta.embedded.inline.html": "html"
                 }
             },
             {
@@ -132,24 +159,306 @@
         ],
         "commands": [
             {
-                "command": "tangu.syntaxTree",
-                "title": "Show Syntax Tree",
+                "command": "tangu.openREPL",
+                "title": "Open REPL Terminal",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.sendSelectionToREPL",
+                "title": "Send Selection to REPL",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.sendFormToREPL",
+                "title": "Send Top-Level Form to REPL",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.sendFileToREPL",
+                "title": "Send Current File to REPL",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.evalSelectionOrForm",
+                "title": "Evaluate Selection or Form",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.evalExpressionPrompt",
+                "title": "Evaluate Expression...",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.clearEvalResults",
+                "title": "Clear Inline Evaluation Results",
                 "category": "Tangu"
             },
             {
                 "command": "tangu.expandMacro",
                 "title": "Expand Macro at Cursor",
+                "category": "Tangu",
+                "icon": "$(symbol-misc)"
+            },
+            {
+                "command": "tangu.expandMacroStep",
+                "title": "Expand Macro at Cursor (Single Step)",
                 "category": "Tangu"
             },
             {
-                "command": "tangu.openREPL",
-                "title": "Open a REPL terminal",
+                "command": "tangu.syntaxTree",
+                "title": "Show Syntax Tree",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.showDelimiters",
+                "title": "Show Delimiter Balance & Depth",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.showCompiledJs",
+                "title": "Show Transpiled JavaScript",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.showTir",
+                "title": "Show Typed IR (TIR)",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.showClif",
+                "title": "Show Cranelift IR (CLIF)",
                 "category": "Tangu"
             },
             {
                 "command": "tangu.requestFullWorkspaceDiagnostics",
                 "title": "Run Full Workspace Diagnostics",
                 "category": "Tangu"
+            },
+            {
+                "command": "tangu.restartServer",
+                "title": "Restart Language Server",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.openServerLogs",
+                "title": "Open Language Server Logs",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.showStatusMenu",
+                "title": "Show Language Server Menu",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.runFix",
+                "title": "Fix & Format Current File (Auto-Import)",
+                "category": "Tangu",
+                "icon": "$(sparkle)"
+            },
+            {
+                "command": "tangu.runDoctor",
+                "title": "Run Environment Doctor",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.runFile",
+                "title": "Run Current File",
+                "category": "Tangu",
+                "icon": "$(play)"
+            },
+            {
+                "command": "tangu.runTestInExplorer",
+                "title": "Run Test in Explorer",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.runChangedTests",
+                "title": "Run Changed Tests",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.wrapParens",
+                "title": "Wrap Form with ()",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.wrapBrackets",
+                "title": "Wrap Form with []",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.wrapBraces",
+                "title": "Wrap Form with {}",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.slurpForward",
+                "title": "Slurp Next Form Forward",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.barfForward",
+                "title": "Barf Last Form Forward",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.spliceForm",
+                "title": "Splice (Unwrap) Enclosing Form",
+                "category": "Tangu"
+            },
+            {
+                "command": "tangu.raiseForm",
+                "title": "Raise Form at Cursor",
+                "category": "Tangu"
+            }
+        ],
+        "menus": {
+            "commandPalette": [
+                {
+                    "command": "tangu.runTestInExplorer",
+                    "when": "false"
+                }
+            ],
+            "editor/title": [
+                {
+                    "command": "tangu.runFile",
+                    "when": "editorLangId == tangu && resourceScheme == file",
+                    "group": "navigation"
+                },
+                {
+                    "command": "tangu.runFix",
+                    "when": "editorLangId =~ /^tangu/ && resourceScheme == file",
+                    "group": "tangu@1"
+                },
+                {
+                    "command": "tangu.evalSelectionOrForm",
+                    "when": "editorLangId =~ /^tangu/",
+                    "group": "tangu@2"
+                },
+                {
+                    "command": "tangu.expandMacro",
+                    "when": "editorLangId =~ /^tangu/",
+                    "group": "tangu@3"
+                },
+                {
+                    "command": "tangu.syntaxTree",
+                    "when": "editorLangId =~ /^tangu/",
+                    "group": "tangu@4"
+                },
+                {
+                    "command": "tangu.showDelimiters",
+                    "when": "editorLangId =~ /^tangu/",
+                    "group": "tangu@5"
+                }
+            ],
+            "editor/context": [
+                {
+                    "command": "tangu.evalSelectionOrForm",
+                    "when": "editorLangId =~ /^tangu/",
+                    "group": "tangu@1"
+                },
+                {
+                    "command": "tangu.sendFormToREPL",
+                    "when": "editorLangId =~ /^tangu/",
+                    "group": "tangu@2"
+                },
+                {
+                    "command": "tangu.sendSelectionToREPL",
+                    "when": "editorHasSelection && editorLangId =~ /^tangu/",
+                    "group": "tangu@3"
+                },
+                {
+                    "command": "tangu.expandMacro",
+                    "when": "editorLangId =~ /^tangu/",
+                    "group": "tangu@4"
+                },
+                {
+                    "command": "tangu.expandMacroStep",
+                    "when": "editorLangId =~ /^tangu/",
+                    "group": "tangu@5"
+                },
+                {
+                    "command": "tangu.syntaxTree",
+                    "when": "editorLangId =~ /^tangu/",
+                    "group": "tangu@6"
+                },
+                {
+                    "command": "tangu.showDelimiters",
+                    "when": "editorLangId =~ /^tangu/",
+                    "group": "tangu@7"
+                },
+                {
+                    "command": "tangu.runFix",
+                    "when": "resourceScheme == file && editorLangId =~ /^tangu/",
+                    "group": "tangu@8"
+                }
+            ]
+        },
+        "keybindings": [
+            {
+                "command": "tangu.evalSelectionOrForm",
+                "key": "ctrl+alt+t e",
+                "when": "editorTextFocus && editorLangId =~ /^tangu/"
+            },
+            {
+                "command": "tangu.sendFormToREPL",
+                "key": "ctrl+alt+t r",
+                "when": "editorTextFocus && editorLangId =~ /^tangu/"
+            },
+            {
+                "command": "tangu.expandMacro",
+                "key": "ctrl+alt+t m",
+                "when": "editorTextFocus && editorLangId =~ /^tangu/"
+            },
+            {
+                "command": "tangu.showDelimiters",
+                "key": "ctrl+alt+t d",
+                "when": "editorTextFocus && editorLangId =~ /^tangu/"
+            },
+            {
+                "command": "tangu.syntaxTree",
+                "key": "ctrl+alt+t a",
+                "when": "editorTextFocus && editorLangId =~ /^tangu/"
+            },
+            {
+                "command": "tangu.runFix",
+                "key": "ctrl+alt+t f",
+                "when": "editorTextFocus && editorLangId =~ /^tangu/"
+            },
+            {
+                "command": "tangu.wrapParens",
+                "key": "ctrl+alt+t (",
+                "when": "editorTextFocus && editorLangId =~ /^tangu/"
+            },
+            {
+                "command": "tangu.wrapBrackets",
+                "key": "ctrl+alt+t [",
+                "when": "editorTextFocus && editorLangId =~ /^tangu/"
+            },
+            {
+                "command": "tangu.wrapBraces",
+                "key": "ctrl+alt+t {",
+                "when": "editorTextFocus && editorLangId =~ /^tangu/"
+            },
+            {
+                "command": "tangu.slurpForward",
+                "key": "ctrl+alt+t right",
+                "when": "editorTextFocus && editorLangId =~ /^tangu/"
+            },
+            {
+                "command": "tangu.barfForward",
+                "key": "ctrl+alt+t left",
+                "when": "editorTextFocus && editorLangId =~ /^tangu/"
+            },
+            {
+                "command": "tangu.spliceForm",
+                "key": "ctrl+alt+t s",
+                "when": "editorTextFocus && editorLangId =~ /^tangu/"
+            },
+            {
+                "command": "tangu.raiseForm",
+                "key": "ctrl+alt+t u",
+                "when": "editorTextFocus && editorLangId =~ /^tangu/"
             }
         ],
         "snippets": [
@@ -162,23 +471,108 @@
                 "path": "./snippets.json"
             },
             {
+                "language": "tangu-schema",
+                "path": "./snippets.json"
+            },
+            {
                 "language": "tangu-test",
                 "path": "./snippets.json"
             },
             {
-                "language": "tangu-schema",
-                "path": "./snippets.json"
+                "language": "tangu-test",
+                "path": "./snippets-test.json"
+            }
+        ],
+        "taskDefinitions": [
+            {
+                "type": "tangu",
+                "required": [
+                    "command"
+                ],
+                "properties": {
+                    "command": {
+                        "type": "string",
+                        "enum": [
+                            "check",
+                            "test",
+                            "fix",
+                            "run",
+                            "compile",
+                            "bench"
+                        ],
+                        "description": "The tangu CLI subcommand to execute."
+                    },
+                    "args": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Additional arguments passed to the tangu CLI subcommand."
+                    }
+                }
+            }
+        ],
+        "problemMatchers": [
+            {
+                "name": "tangu",
+                "label": "Tangu compiler & linter",
+                "owner": "tangu-cli",
+                "fileLocation": [
+                    "autoDetect",
+                    "${workspaceFolder}"
+                ],
+                "pattern": {
+                    "regexp": "^(Error|Warning|Info|Hint)\\s+\\[([^\\]]+)\\]\\s+(.+?):(\\d+):(\\d+):\\s+(.*)$",
+                    "severity": 1,
+                    "code": 2,
+                    "file": 3,
+                    "line": 4,
+                    "column": 5,
+                    "message": 6
+                }
             }
         ],
         "configuration": {
             "type": "object",
-            "title": "Tangu Language Server configuration",
+            "title": "Tangu",
             "properties": {
-                "tangu.maxNumberOfProblems": {
-                    "scope": "resource",
-                    "type": "number",
-                    "default": 100,
-                    "description": "Controls the maximum number of problems produced by the server."
+                "tangu.server.path": {
+                    "scope": "window",
+                    "type": "string",
+                    "default": "",
+                    "restricted": true,
+                    "description": "Optional path to the tangu-language-server executable. When empty, searches PATH, ~/.cargo/bin, and $TANGU_ROOT/bin."
+                },
+                "tangu.server.extraEnv": {
+                    "scope": "window",
+                    "type": "object",
+                    "default": {},
+                    "restricted": true,
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Additional environment variables passed to the tangu-language-server process."
+                },
+                "tangu.server.logLevel": {
+                    "scope": "window",
+                    "type": "string",
+                    "enum": [
+                        "",
+                        "error",
+                        "warn",
+                        "info",
+                        "debug",
+                        "trace"
+                    ],
+                    "default": "",
+                    "description": "Optional RUST_LOG directive for tangu-language-server. Leave empty to let tangu.trace.server control log verbosity dynamically."
+                },
+                "tangu.cli.path": {
+                    "scope": "window",
+                    "type": "string",
+                    "default": "",
+                    "restricted": true,
+                    "description": "Optional path to the tangu CLI executable. When empty, searches PATH, ~/.cargo/bin, and $TANGU_ROOT/bin."
                 },
                 "tangu.trace.server": {
                     "scope": "window",
@@ -188,11 +582,107 @@
                         "messages",
                         "verbose"
                     ],
-                    "default": "verbose",
+                    "default": "off",
                     "description": "Traces the communication between VS Code and the language server."
+                },
+                "tangu.diagnostics.workspace": {
+                    "scope": "resource",
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable workspace-wide diagnostics in tangu-language-server. Overrides .tangu/config.data.tan only when explicitly modified."
+                },
+                "tangu.lint.enable": {
+                    "scope": "resource",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [],
+                    "description": "Lint rules or categories to enable. Overrides .tangu/config.data.tan only when explicitly modified."
+                },
+                "tangu.lint.disable": {
+                    "scope": "resource",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [],
+                    "description": "Lint rules or categories to disable. Overrides .tangu/config.data.tan only when explicitly modified."
+                },
+                "tangu.lint.exclude": {
+                    "scope": "resource",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [],
+                    "description": "File or directory globs excluded from linting. Overrides .tangu/config.data.tan only when explicitly modified."
+                },
+                "tangu.lint.severity": {
+                    "scope": "resource",
+                    "type": "object",
+                    "default": {},
+                    "additionalProperties": {
+                        "type": "string",
+                        "enum": [
+                            "error",
+                            "warning",
+                            "info",
+                            "hint",
+                            "off"
+                        ]
+                    },
+                    "description": "Per-rule lint severity overrides. Overrides .tangu/config.data.tan only when explicitly modified."
+                },
+                "tangu.format.indentSize": {
+                    "scope": "resource",
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 4,
+                    "description": "Formatter indentation width in spaces. Overrides .tangu/config.data.tan only when explicitly modified."
+                },
+                "tangu.format.softLineLimit": {
+                    "scope": "resource",
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 80,
+                    "description": "Formatter soft line wrap limit. Overrides .tangu/config.data.tan only when explicitly modified."
+                },
+                "tangu.format.hardLineLimit": {
+                    "scope": "resource",
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 120,
+                    "description": "Formatter hard line wrap limit. Overrides .tangu/config.data.tan only when explicitly modified."
+                },
+                "tangu.format.organizeImports": {
+                    "scope": "resource",
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Automatically sort and organize imports when formatting. Overrides .tangu/config.data.tan only when explicitly modified."
+                },
+                "tangu.eval.timeoutMs": {
+                    "scope": "window",
+                    "type": "integer",
+                    "minimum": 50,
+                    "maximum": 30000,
+                    "default": 5000,
+                    "description": "Timeout in milliseconds for inline expression evaluation."
+                },
+                "tangu.codeLens.runTest": {
+                    "scope": "resource",
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Show 'Run test' / 'Run all tests in file' CodeLenses in .test.tan files (disable if you only want Test Explorer gutter icons)."
                 }
             }
         },
+        "semanticTokenModifiers": [
+            {
+                "id": "effectful",
+                "description": "Functions or expressions with side effects"
+            }
+        ],
         "semanticTokenScopes": [
             {
                 "language": "tangu",
@@ -266,46 +756,129 @@
         "configurationDefaults": {
             "[tangu]": {
                 "editor.semanticHighlighting.enabled": true,
-                "editor.inlayHints.enabled": "on"
+                "editor.inlayHints.enabled": "on",
+                "editor.bracketPairColorization.enabled": true,
+                "editor.guides.bracketPairs": "active"
             },
             "[tangu-data]": {
                 "editor.semanticHighlighting.enabled": true,
-                "editor.inlayHints.enabled": "on"
+                "editor.inlayHints.enabled": "on",
+                "editor.bracketPairColorization.enabled": true,
+                "editor.guides.bracketPairs": "active"
             },
             "[tangu-test]": {
                 "editor.semanticHighlighting.enabled": true,
-                "editor.inlayHints.enabled": "on"
+                "editor.inlayHints.enabled": "on",
+                "editor.bracketPairColorization.enabled": true,
+                "editor.guides.bracketPairs": "active"
             },
             "[tangu-schema]": {
                 "editor.semanticHighlighting.enabled": true,
-                "editor.inlayHints.enabled": "on"
+                "editor.inlayHints.enabled": "on",
+                "editor.bracketPairColorization.enabled": true,
+                "editor.guides.bracketPairs": "active"
             },
             "editor.semanticTokenColorCustomizations": {
                 "[*]": {
                     "rules": {
-                        "interface": {
+                        "interface:tangu": {
                             "fontStyle": "",
                             "foreground": "#7A8CA5"
                         },
-                        "type": {
+                        "interface:tangu-data": {
+                            "fontStyle": "",
+                            "foreground": "#7A8CA5"
+                        },
+                        "interface:tangu-test": {
+                            "fontStyle": "",
+                            "foreground": "#7A8CA5"
+                        },
+                        "interface:tangu-schema": {
+                            "fontStyle": "",
+                            "foreground": "#7A8CA5"
+                        },
+                        "type:tangu": {
                             "fontStyle": ""
                         },
-                        "class": {
+                        "type:tangu-data": {
                             "fontStyle": ""
                         },
-                        "struct": {
+                        "type:tangu-test": {
                             "fontStyle": ""
                         },
-                        "enum": {
+                        "type:tangu-schema": {
                             "fontStyle": ""
                         },
-                        "*.modification": {
+                        "class:tangu": {
+                            "fontStyle": ""
+                        },
+                        "class:tangu-data": {
+                            "fontStyle": ""
+                        },
+                        "class:tangu-test": {
+                            "fontStyle": ""
+                        },
+                        "class:tangu-schema": {
+                            "fontStyle": ""
+                        },
+                        "struct:tangu": {
+                            "fontStyle": ""
+                        },
+                        "struct:tangu-data": {
+                            "fontStyle": ""
+                        },
+                        "struct:tangu-test": {
+                            "fontStyle": ""
+                        },
+                        "struct:tangu-schema": {
+                            "fontStyle": ""
+                        },
+                        "enum:tangu": {
+                            "fontStyle": ""
+                        },
+                        "enum:tangu-data": {
+                            "fontStyle": ""
+                        },
+                        "enum:tangu-test": {
+                            "fontStyle": ""
+                        },
+                        "enum:tangu-schema": {
+                            "fontStyle": ""
+                        },
+                        "*.modification:tangu": {
                             "fontStyle": "underline"
                         },
-                        "*.effectful": {
+                        "*.modification:tangu-data": {
+                            "fontStyle": "underline"
+                        },
+                        "*.modification:tangu-test": {
+                            "fontStyle": "underline"
+                        },
+                        "*.modification:tangu-schema": {
+                            "fontStyle": "underline"
+                        },
+                        "*.effectful:tangu": {
                             "fontStyle": "italic"
                         },
-                        "*.deprecated": {
+                        "*.effectful:tangu-data": {
+                            "fontStyle": "italic"
+                        },
+                        "*.effectful:tangu-test": {
+                            "fontStyle": "italic"
+                        },
+                        "*.effectful:tangu-schema": {
+                            "fontStyle": "italic"
+                        },
+                        "*.deprecated:tangu": {
+                            "fontStyle": "strikethrough"
+                        },
+                        "*.deprecated:tangu-data": {
+                            "fontStyle": "strikethrough"
+                        },
+                        "*.deprecated:tangu-test": {
+                            "fontStyle": "strikethrough"
+                        },
+                        "*.deprecated:tangu-schema": {
                             "fontStyle": "strikethrough"
                         }
                     }
@@ -314,37 +887,34 @@
         }
     },
     "scripts": {
-        "compile": "node ./esbuild.js",
-        "watch": "tsc -watch -p ./",
-        "pretest": "npm run compile && npm run lint",
-        "lint": "eslint src --ext ts",
+        "compile": "node ./esbuild.js --sourcemap",
+        "watch": "node ./esbuild.js --sourcemap --watch",
+        "esbuild": "node ./esbuild.js --sourcemap",
+        "esbuild-watch": "node ./esbuild.js --sourcemap --watch",
+        "vscode:prepublish": "node ./esbuild.js --minify",
+        "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json --noEmit",
+        "lint": "eslint src test --ext ts",
+        "compile-tests": "tsc -p tsconfig.test.json",
+        "test": "npm run compile-tests && mocha \"out-test/test/**/*.test.js\"",
+        "pretest": "npm run typecheck && npm run lint",
         "package": "vsce package",
-        "publish": "vsce publish",
-        "vscode:prepublish": "npm run esbuild-base -- --minify",
-        "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=dist/main.js --external:vscode --format=cjs --platform=node",
-        "esbuild": "npm run esbuild-base -- --sourcemap",
-        "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch"
+        "publish": "vsce publish"
     },
     "dependencies": {
-        "vscode-languageclient": "^9.0.1",
-        "vscode-languageserver": "^9.0.1"
+        "vscode-languageclient": "^9.0.1"
     },
     "devDependencies": {
-        "@types/glob": "^8.1.0",
         "@types/mocha": "^10.0.10",
         "@types/node": "^22.19.19",
         "@types/vscode": "^1.99.0",
         "@typescript-eslint/eslint-plugin": "^8.59.4",
         "@typescript-eslint/parser": "^8.59.4",
-        "@vscode/codicons": "^0.0.45",
         "@vscode/vsce": "^3.9.1",
         "esbuild": "^0.28.0",
         "eslint": "^8.57.1",
-        "glob": "^11.1.0",
         "mocha": "^11.7.6",
-        "ts-loader": "^9.5.7",
         "typescript": "^5.9.3",
-        "webpack": "^5.107.0",
-        "webpack-cli": "^7.0.2"
+        "vscode-oniguruma": "^2.0.1",
+        "vscode-textmate": "^9.2.0"
     }
 }

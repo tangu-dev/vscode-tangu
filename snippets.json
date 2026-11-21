@@ -1,45 +1,50 @@
 {
+    "Declaration": {
+        "prefix": ["def"],
+        "body": ["(def ${1:name} ${0:value})"],
+        "description": "Hoisted immutable declaration"
+    },
     "Function definition": {
-        "prefix": [
-            "letf",
-            "let-fn"
-        ],
+        "prefix": ["defn", "deff", "def-fn"],
         "body": [
-            "(let ${1:name} (Func [${2:params}]",
+            "(def ${1:name} (Func [${2:params}]",
             "\t$0",
             "))"
         ],
-        "description": "A function definition"
+        "description": "Top-level function definition"
     },
-    "Test function definition": {
-        "prefix": [
-            "lett",
-            "let-test"
-        ],
+    "Public function definition": {
+        "prefix": ["pub", "pubfn"],
         "body": [
-            "(let #test test-${1:name} (Func ()",
+            "#pub",
+            "(def ${1:name} (Func [${2:params}]",
             "\t$0",
             "))"
         ],
-        "description": "A function definition"
+        "description": "Public function definition with stacked #pub annotation"
     },
-    "HTML Component function definition": {
-        "prefix": [
-            "leth",
-            "let-html"
-        ],
+    "Struct definition": {
+        "prefix": ["struct"],
         "body": [
-            "(let <${1:name}> (Func [...params]",
-            "\t$0",
-            "))"
+            "(def ${1:Name} (Struct",
+            "\t${2:#String field}",
+            "))",
+            "(derive ${1:Name} Eq Clone)"
         ],
-        "description": "An HTML component definition"
+        "description": "Struct type definition with derive"
+    },
+    "Pattern matching (when)": {
+        "prefix": ["when"],
+        "body": [
+            "(when ${1:subject}",
+            "\t${2:pattern} ${3:result}",
+            "\t_ ${0:default}",
+            ")"
+        ],
+        "description": "Pattern matching expression"
     },
     "If-Else": {
-        "prefix": [
-            "ife",
-            "if-else"
-        ],
+        "prefix": ["ife", "if-else"],
         "body": [
             "(if ${1:predicate}",
             "\t$2",
@@ -47,44 +52,47 @@
             "\t$3",
             "))"
         ],
-        "description": "An if-else block"
+        "description": "If-else conditional expression"
     },
-    "Echo": {
-        "prefix": [
-            "ech"
-        ],
+    "Sequence comprehension (for->seq)": {
+        "prefix": ["forseq", "for-seq"],
         "body": [
-            "(echo ${0})"
+            "(for->seq [${1:item} ${2:items}]",
+            "\t$0",
+            ")"
         ],
-        "description": "An echo invocation"
+        "description": "Sequence comprehension building an array or tree"
     },
     "Use statement": {
-        "prefix": [
-            "use"
-        ],
-        "body": [
-            "(use {${2:names}} ${1:module})"
-        ],
-        "description": "A use statement"
+        "prefix": ["use"],
+        "body": ["(use {${2:names}} ${1:/module})"],
+        "description": "Module import statement"
     },
-    "Assert": {
-        "prefix": [
-            "ass",
-            "assert"
-        ],
-        "body": [
-            "(assert ${0})"
-        ],
-        "description": "An assert invocation"
+    "Say": {
+        "prefix": ["say"],
+        "body": ["(say \"${0}\")"],
+        "description": "Print formatted output with say"
     },
-    "Assert equals": {
-        "prefix": [
-            "asse",
-            "assert-eq"
-        ],
+    "HTML Component": {
+        "prefix": ["shtml", "def-html"],
         "body": [
-            "(assert-eq ${1:expected} ${2:actual})"
+            "#pub",
+            "(def <${1:component}> (Func [...children]",
+            "\t#shtml [:div$0",
+            "\t\t...children",
+            "\t]",
+            "))"
         ],
-        "description": "An assert-eq invocation"
+        "description": "Idiomatic #shtml component definition"
+    },
+    "Local fallback (ok-or)": {
+        "prefix": ["okor", "ok-or"],
+        "body": ["(ok-or ${1:expr} ${0:default})"],
+        "description": "Local fallback on () or Error"
+    },
+    "Module/file doc comment": {
+        "prefix": ["doc"],
+        "body": ["#(doc \"\"\"\n${0}\n\"\"\") %file"],
+        "description": "Structured documentation attachment"
     }
 }

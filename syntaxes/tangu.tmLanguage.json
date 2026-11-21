@@ -11,92 +11,506 @@
         "all": {
             "patterns": [
                 {
+                    "include": "#shebang"
+                },
+                {
+                    "include": "#comment_doc"
+                },
+                {
                     "include": "#comment_line_semicolon"
+                },
+                {
+                    "include": "#doc_annotation"
+                },
+                {
+                    "include": "#embedded_sql"
+                },
+                {
+                    "include": "#embedded_html"
+                },
+                {
+                    "include": "#string_triple"
+                },
+                {
+                    "include": "#string_raw"
+                },
+                {
+                    "include": "#string_double"
                 },
                 {
                     "include": "#annotation"
                 },
                 {
-                    "include": "#def"
+                    "include": "#unit"
                 },
                 {
-                    "include": "#let"
+                    "include": "#spread"
                 },
                 {
-                    "include": "#for"
+                    "include": "#range"
                 },
                 {
-                    "include": "#if"
+                    "include": "#boolean"
                 },
                 {
-                    "include": "#cond"
+                    "include": "#number"
                 },
                 {
-                    "include": "#else"
+                    "include": "#context_symbol"
                 },
                 {
-                    "include": "#use"
+                    "include": "#keyword_symbol"
                 },
                 {
-                    "include": "#return"
+                    "include": "#operator"
                 },
                 {
-                    "include": "#continue"
+                    "include": "#keywords"
                 },
                 {
-                    "include": "#break"
+                    "include": "#type_name"
+                }
+            ]
+        },
+        "shebang": {
+            "name": "comment.line.number-sign.shebang.tangu",
+            "match": "^#!.*$"
+        },
+        "comment_doc": {
+            "name": "comment.line.documentation.tangu",
+            "begin": ";;",
+            "beginCaptures": {
+                "0": {
+                    "name": "punctuation.definition.comment.tangu"
+                }
+            },
+            "end": "$",
+            "contentName": "meta.embedded.block.comment",
+            "patterns": [
+                {
+                    "include": "text.html.markdown"
                 }
             ]
         },
         "comment_line_semicolon": {
             "name": "comment.line.semicolon.tangu",
             "begin": ";",
+            "beginCaptures": {
+                "0": {
+                    "name": "punctuation.definition.comment.tangu"
+                }
+            },
             "end": "$"
         },
+        "doc_annotation": {
+            "name": "meta.annotation.doc.tangu",
+            "begin": "(#\\(\\s*doc)(?=\\s+(?:\"\"\"|\"))",
+            "beginCaptures": {
+                "1": {
+                    "name": "entity.name.tag.tangu"
+                }
+            },
+            "end": "\\)",
+            "endCaptures": {
+                "0": {
+                    "name": "punctuation.section.parens.end.tangu"
+                }
+            },
+            "patterns": [
+                {
+                    "name": "string.quoted.triple.tangu",
+                    "begin": "\"\"\"",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.begin.tangu"
+                        }
+                    },
+                    "end": "\"\"\"",
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.end.tangu"
+                        }
+                    },
+                    "contentName": "meta.embedded.block.comment",
+                    "patterns": [
+                        {
+                            "include": "text.html.markdown"
+                        }
+                    ]
+                },
+                {
+                    "name": "string.quoted.double.tangu",
+                    "begin": "\"",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.begin.tangu"
+                        }
+                    },
+                    "end": "\"",
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.end.tangu"
+                        }
+                    },
+                    "contentName": "meta.embedded.block.comment",
+                    "patterns": [
+                        {
+                            "include": "#string_escape"
+                        },
+                        {
+                            "include": "text.html.markdown"
+                        }
+                    ]
+                },
+                {
+                    "include": "#all"
+                }
+            ]
+        },
+        "embedded_sql": {
+            "patterns": [
+                {
+                    "begin": "(#(?:\\(\\s*sql\\s*\\)|sql))\\s+(\"\"\")",
+                    "beginCaptures": {
+                        "1": {
+                            "name": "entity.name.tag.tangu"
+                        },
+                        "2": {
+                            "name": "punctuation.definition.string.begin.tangu"
+                        }
+                    },
+                    "end": "\"\"\"",
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.end.tangu"
+                        }
+                    },
+                    "contentName": "meta.embedded.inline.sql",
+                    "patterns": [
+                        {
+                            "include": "#string_escape"
+                        },
+                        {
+                            "include": "#string_interpolation"
+                        },
+                        {
+                            "include": "source.sql"
+                        }
+                    ]
+                },
+                {
+                    "begin": "(#(?:\\(\\s*sql\\s*\\)|sql))\\s+(\")(?!\"\")",
+                    "beginCaptures": {
+                        "1": {
+                            "name": "entity.name.tag.tangu"
+                        },
+                        "2": {
+                            "name": "punctuation.definition.string.begin.tangu"
+                        }
+                    },
+                    "end": "\"",
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.end.tangu"
+                        }
+                    },
+                    "contentName": "meta.embedded.inline.sql",
+                    "patterns": [
+                        {
+                            "include": "#string_escape"
+                        },
+                        {
+                            "include": "#string_interpolation"
+                        },
+                        {
+                            "include": "source.sql"
+                        }
+                    ]
+                }
+            ]
+        },
+        "embedded_html": {
+            "patterns": [
+                {
+                    "begin": "(#(?:\\(\\s*html\\s*\\)|html))\\s+(\"\"\")",
+                    "beginCaptures": {
+                        "1": {
+                            "name": "entity.name.tag.tangu"
+                        },
+                        "2": {
+                            "name": "punctuation.definition.string.begin.tangu"
+                        }
+                    },
+                    "end": "\"\"\"",
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.end.tangu"
+                        }
+                    },
+                    "contentName": "meta.embedded.inline.html",
+                    "patterns": [
+                        {
+                            "include": "#string_escape"
+                        },
+                        {
+                            "include": "#string_interpolation"
+                        },
+                        {
+                            "include": "text.html.basic"
+                        }
+                    ]
+                },
+                {
+                    "begin": "(#(?:\\(\\s*html\\s*\\)|html))\\s+(\")(?!\"\")",
+                    "beginCaptures": {
+                        "1": {
+                            "name": "entity.name.tag.tangu"
+                        },
+                        "2": {
+                            "name": "punctuation.definition.string.begin.tangu"
+                        }
+                    },
+                    "end": "\"",
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.end.tangu"
+                        }
+                    },
+                    "contentName": "meta.embedded.inline.html",
+                    "patterns": [
+                        {
+                            "include": "#string_escape"
+                        },
+                        {
+                            "include": "#string_interpolation"
+                        },
+                        {
+                            "include": "text.html.basic"
+                        }
+                    ]
+                }
+            ]
+        },
+        "string_triple": {
+            "name": "string.quoted.triple.tangu",
+            "begin": "\"\"\"",
+            "beginCaptures": {
+                "0": {
+                    "name": "punctuation.definition.string.begin.tangu"
+                }
+            },
+            "end": "\"\"\"",
+            "endCaptures": {
+                "0": {
+                    "name": "punctuation.definition.string.end.tangu"
+                }
+            },
+            "patterns": [
+                {
+                    "include": "#string_escape"
+                },
+                {
+                    "include": "#string_interpolation"
+                }
+            ]
+        },
+        "string_raw": {
+            "name": "string.quoted.double.raw.tangu",
+            "match": "(\")((?:[^\"\\\\]|\\\\.)*)(\"r)(?![a-zA-Z0-9_-])",
+            "captures": {
+                "1": {
+                    "name": "punctuation.definition.string.begin.tangu"
+                },
+                "3": {
+                    "name": "punctuation.definition.string.end.tangu"
+                }
+            }
+        },
+        "string_double": {
+            "name": "string.quoted.double.tangu",
+            "begin": "\"",
+            "beginCaptures": {
+                "0": {
+                    "name": "punctuation.definition.string.begin.tangu"
+                }
+            },
+            "end": "\"(r)?",
+            "endCaptures": {
+                "0": {
+                    "name": "punctuation.definition.string.end.tangu"
+                },
+                "1": {
+                    "name": "storage.type.string.tangu"
+                }
+            },
+            "patterns": [
+                {
+                    "include": "#string_escape"
+                },
+                {
+                    "include": "#string_interpolation"
+                }
+            ]
+        },
+        "string_escape": {
+            "name": "constant.character.escape.tangu",
+            "match": "\\\\(?:[\"\\\\nrt0$]|u\\{[0-9a-fA-F]+\\}|x[0-9a-fA-F]{2}|.)"
+        },
+        "string_interpolation": {
+            "name": "meta.interpolation.tangu",
+            "begin": "\\$\\{",
+            "beginCaptures": {
+                "0": {
+                    "name": "punctuation.section.interpolation.begin.tangu"
+                }
+            },
+            "end": "\\}",
+            "endCaptures": {
+                "0": {
+                    "name": "punctuation.section.interpolation.end.tangu"
+                }
+            },
+            "contentName": "meta.embedded.line.tangu",
+            "patterns": [
+                {
+                    "include": "#interpolation_braces"
+                },
+                {
+                    "include": "#all"
+                }
+            ]
+        },
+        "interpolation_braces": {
+            "begin": "\\{",
+            "end": "\\}",
+            "patterns": [
+                {
+                    "include": "#interpolation_braces"
+                },
+                {
+                    "include": "#all"
+                }
+            ]
+        },
         "annotation": {
-            "name": "keyword.control.tangu",
-            "begin": "\\#",
-            "end": "\\s"
+            "patterns": [
+                {
+                    "name": "meta.annotation.tangu",
+                    "begin": "#\\(",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "entity.name.tag.tangu"
+                        }
+                    },
+                    "end": "\\)",
+                    "endCaptures": {
+                        "0": {
+                            "name": "entity.name.tag.tangu"
+                        }
+                    },
+                    "patterns": [
+                        {
+                            "include": "#all"
+                        }
+                    ]
+                },
+                {
+                    "name": "meta.annotation.tangu",
+                    "begin": "#\\{",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "entity.name.tag.tangu"
+                        }
+                    },
+                    "end": "\\}",
+                    "endCaptures": {
+                        "0": {
+                            "name": "entity.name.tag.tangu"
+                        }
+                    },
+                    "patterns": [
+                        {
+                            "include": "#all"
+                        }
+                    ]
+                },
+                {
+                    "name": "entity.name.tag.tangu",
+                    "match": "#[a-zA-Z0-9_?!<>:+*/.-]+"
+                }
+            ]
         },
-        "def": {
-            "name": "keyword.control.tangu",
-            "match": "\\b(def)\\b"
+        "unit": {
+            "name": "constant.language.unit.tangu",
+            "match": "\\(\\)"
         },
-        "let": {
-            "name": "keyword.control.tangu",
-            "match": "\\b(let)\\b"
+        "spread": {
+            "name": "keyword.operator.spread.tangu",
+            "match": "\\.\\.\\."
         },
-        "for": {
-            "name": "keyword.control.tangu",
-            "match": "\\b(for)\\b"
+        "range": {
+            "name": "constant.numeric.range.tangu",
+            "match": "(?:0x[0-9a-fA-F_]+|0b[01_]+|0o[0-7_]+|-?[0-9][0-9_]*)?\\.\\.=?(?!\\.)(?:-?(?:[0-9][0-9_]*|[a-zA-Z][a-zA-Z0-9_-]*))?(?:\\|-?(?:[0-9][0-9_]*|[a-zA-Z][a-zA-Z0-9_-]*))?"
         },
-        "if": {
-            "name": "keyword.control.tangu",
-            "match": "\\b(if)\\b"
+        "boolean": {
+            "name": "constant.language.boolean.tangu",
+            "match": "(?<![a-zA-Z0-9_:-])(?:true|false)(?![a-zA-Z0-9_?!-])"
         },
-        "cond": {
-            "name": "keyword.control.tangu",
-            "match": "\\b(cond)\\b"
+        "number": {
+            "patterns": [
+                {
+                    "name": "constant.numeric.integer.tangu",
+                    "match": "(?<![a-zA-Z0-9_:-])-?(?:0x[0-9a-fA-F][0-9a-fA-F_]*|0b[01][01_]*|0o[0-7][0-7_]*)(?:[iu](?:8|16|32|64|128|size))?(?![a-zA-Z0-9_-])"
+                },
+                {
+                    "name": "constant.numeric.float.tangu",
+                    "match": "(?<![a-zA-Z0-9_:-])-?[0-9][0-9_]*\\.[0-9][0-9_]*(?:[eE][+-]?[0-9_]+)?(?:f(?:32|64)|d)?(?![a-zA-Z0-9_-])"
+                },
+                {
+                    "name": "constant.numeric.integer.tangu",
+                    "match": "(?<![a-zA-Z0-9_:-])-?[0-9][0-9_]*(?:[eE][+-]?[0-9_]+)?(?:[iuf](?:8|16|32|64|128|size)|d|size)?(?![a-zA-Z0-9_-])"
+                }
+            ]
         },
-        "else": {
-            "name": "keyword.control.tangu",
-            "match": "\\b(else)\\b"
+        "context_symbol": {
+            "name": "variable.language.tangu",
+            "match": "(?<![a-zA-Z0-9_-])%(?:[0-9]+|file|module|dir|profile|[a-zA-Z][a-zA-Z0-9_-]*)?(?![a-zA-Z0-9_-])"
         },
-        "use": {
-            "name": "keyword.control.import.tangu",
-            "match": "\\b(use)\\b"
+        "keyword_symbol": {
+            "patterns": [
+                {
+                    "name": "constant.other.symbol.tangu",
+                    "match": "(?:^|(?<=[\\s(\\[{])):[a-zA-Z0-9_?!<>+*/.-]+"
+                },
+                {
+                    "name": "variable.other.property.tangu",
+                    "match": ":[a-zA-Z0-9_-]+"
+                }
+            ]
         },
-        "return": {
-            "name": "keyword.control.import.tangu",
-            "match": "\\b(return)\\b"
+        "operator": {
+            "name": "keyword.operator.tangu",
+            "match": "\\|>|[+*/-]?<-|==|!=|<=|>=|(?<=\\s|\\(|\\[)(?:->|<|>|\\+|-|\\*|/|\\|\\||&&)(?=\\s|$)"
         },
-        "continue": {
-            "name": "keyword.control.import.tangu",
-            "match": "\\b(continue)\\b"
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.control.import.tangu",
+                    "match": "(?<![a-zA-Z0-9_:-])(?:use|return|continue|break)(?![a-zA-Z0-9_?!<>-])"
+                },
+                {
+                    "name": "keyword.control.tangu",
+                    "match": "(?<![a-zA-Z0-9_:-])(?:def|let|if|else|unless|cond|when|for->seq|for|while|try|ok-or|some-or|do|and|or|not|is-a\\?|cast|declare-foreign-names)(?![a-zA-Z0-9_?!<>-])"
+                },
+                {
+                    "name": "storage.type.tangu",
+                    "match": "(?<![a-zA-Z0-9_:-])(?:Func|fn|Macro|Struct|Trait|impl|derive|Lazy)(?![a-zA-Z0-9_?!<>-])"
+                }
+            ]
         },
-        "break": {
-            "name": "keyword.control.import.tangu",
-            "match": "\\b(break)\\b"
+        "type_name": {
+            "name": "entity.name.type.tangu",
+            "match": "(?<![a-zA-Z0-9_:-])[A-Z][a-zA-Z0-9_-]*(?![a-zA-Z0-9_?!<>-])"
         }
     }
 }

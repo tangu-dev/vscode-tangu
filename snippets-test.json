@@ -1,0 +1,27 @@
+{
+    "Test definition": {
+        "prefix": ["test", "deft", "def-test"],
+        "body": [
+            "#test",
+            "(def ${1:behavior-is-verified} (Func ()",
+            "\t$0",
+            "))"
+        ],
+        "description": "Idiomatic stacked #test definition without test- prefix"
+    },
+    "Assert": {
+        "prefix": ["ass", "assert", "assert!"],
+        "body": ["(assert! ${0:predicate})"],
+        "description": "Boolean assertion"
+    },
+    "Assert equals": {
+        "prefix": ["asse", "assert-eq", "assert-eq!"],
+        "body": ["(assert-eq! ${1:expected} ${2:actual})"],
+        "description": "Equality assertion"
+    },
+    "Assert error": {
+        "prefix": ["asserr", "assert-error", "assert-error!"],
+        "body": ["(assert-error! ${0:expr})"],
+        "description": "Error assertion"
+    }
+}

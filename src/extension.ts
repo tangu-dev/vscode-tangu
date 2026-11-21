@@ -1,92 +1,42 @@
-import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { ExtensionContext, workspace } from "vscode";
 import {
     LanguageClient,
     LanguageClientOptions,
     ServerOptions,
     TransportKind,
 } from "vscode-languageclient/node";
+import { runTanguCli } from "./cli-runner";
+import { createCodeLensMiddleware } from "./codelens-middleware";
+import {
+    getServerConfigOverrides,
+    getServerEnv,
+    resolveCliBinary,
+    resolveServerBinary,
+} from "./config";
+import { TanguEvalReplManager } from "./eval-repl";
+import { TanguPreviewProvider } from "./preview-provider";
 import { ServerStatusSubscription } from "./server-status";
+import { registerSexpCommands } from "./sexp";
+import { TanguTaskProvider } from "./task-provider";
+import { TanguTestController } from "./test-controller";
 
-// #todo different path for windows/unix?
-
-/// The Tangu CLI executable name.
-const TANGU_CLI = "tangu";
-
-// #tip Install the server with `cargo install tangu-language-server`.
-
-/// The Tangu Language Server executable name.
-const TANGU_LANGUAGE_SERVER = "tangu-language-server";
-
-/// The name of the Tangu REPL terminal.
-const TANGU_REPL_TERMINAL_NAME = "Tangu REPL";
-
-/// The LSP executeCommand ID for full workspace diagnostics.
 const RUN_FULL_WORKSPACE_DIAGNOSTICS_SERVER_COMMAND =
     "tangu.runFullWorkspaceDiagnostics";
+const TANGU_LANGUAGE_IDS = ["tangu", "tangu-data", "tangu-test", "tangu-schema"];
 
-/// The VS Code command ID for requesting full workspace diagnostics.
-const RUN_FULL_WORKSPACE_DIAGNOSTICS_VSCODE_COMMAND =
-    "tangu.requestFullWorkspaceDiagnostics";
+let client: LanguageClient | undefined;
+let isRestarting = false;
 
-/// The LSP executeCommand ID for macro expansion.
-const EXPAND_MACRO_SERVER_COMMAND = "tangu.expandMacroServer";
-
-let client: LanguageClient;
-
-function executableExists(name: string): boolean {
-    const envPath = process.env["PATH"];
-
-    if (!envPath) {
-        return false;
+function buildDocumentSelector() {
+    const selector = [];
+    for (const language of TANGU_LANGUAGE_IDS) {
+        selector.push({ scheme: "file", language });
+        selector.push({ scheme: "untitled", language });
     }
-
-    return envPath.split(path.delimiter)
-        .some((x) => fs.existsSync(path.resolve(x, name)));
+    return selector;
 }
 
-// focusTextEditor:
-// vscode.commands.executeCommand("workbench.action.focusActiveEditorGroup");
-
-/**
- * Creates a new REPL process.
- */
-function createREPLTerminal(): Thenable<vscode.Terminal> {
-    const terminal = vscode.window.createTerminal(TANGU_REPL_TERMINAL_NAME);
-    terminal.sendText(TANGU_CLI, true);
-
-    return vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: "Opening Tangu REPL...",
-        cancellable: false,
-    }, () => {
-        return new Promise<vscode.Terminal>((resolve) => {
-            terminal.show();
-            resolve(terminal);
-        });
-    });
-}
-
-/**
- * Opens a terminal with a Tangu REPL. If a REPL process is already spawned, it
- * is reused.
- */
-function openREPLTerminal(): Thenable<vscode.Terminal> {
-    const terminal =
-        vscode.window.terminals.find((t) =>
-            t.name === TANGU_REPL_TERMINAL_NAME
-        ) ??
-            createREPLTerminal();
-
-    return Promise.resolve(terminal).then((t) => {
-        t.show();
-        return t;
-    });
-}
-
-/** Requests full workspace diagnostics from the language server. */
 async function requestFullWorkspaceDiagnostics(
     outputChannel: vscode.OutputChannel,
 ): Promise<void> {
@@ -97,290 +47,393 @@ async function requestFullWorkspaceDiagnostics(
         return;
     }
 
-    outputChannel.appendLine("Request full workspace diagnostics");
-
+    outputChannel.appendLine("Requesting full workspace diagnostics...");
     try {
         await client.sendRequest("workspace/executeCommand", {
             command: RUN_FULL_WORKSPACE_DIAGNOSTICS_SERVER_COMMAND,
             arguments: [],
         });
-
         void vscode.window.showInformationMessage(
             "Tangu: Requested full workspace diagnostics.",
         );
     } catch (error) {
-        const message = error instanceof Error
-            ? error.message
-            : "Unknown error";
-
+        const message = error instanceof Error ? error.message : String(error);
         outputChannel.appendLine(
             `Failed to request full workspace diagnostics: ${message}`,
         );
-
         void vscode.window.showErrorMessage(
             "Tangu: Failed to request full workspace diagnostics.",
         );
     }
 }
 
-/** Activates the extension. */
-export function activate(context: ExtensionContext) {
-    // Logs client messages to Output > Tangu Language Client
+async function pushServerConfiguration(
+    outputChannel: vscode.OutputChannel,
+): Promise<void> {
+    if (!client) {
+        return;
+    }
+    const overrides = getServerConfigOverrides();
+    try {
+        await client.sendNotification("workspace/didChangeConfiguration", {
+            settings: { tangu: overrides },
+        });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        outputChannel.appendLine(`Failed to sync configuration: ${message}`);
+    }
+}
+
+/** Activates the Tangu VS Code extension. */
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
     const clientOutputChannel = vscode.window.createOutputChannel(
         "Tangu Language Client",
     );
-    clientOutputChannel.show(true);
-
-    // Logs server messages to Output > Tab Language Server Trace
     const serverTraceOutputChannel = vscode.window.createOutputChannel(
         "Tangu Language Server Trace",
     );
+    const evalOutputChannel = vscode.window.createOutputChannel("Tangu Eval");
 
-    // #Insight
-    // Server output (eprintln!) is logged to Output > Tangu Language
+    const tanWatcher = vscode.workspace.createFileSystemWatcher("**/*.tan");
+    const configWatcher = vscode.workspace.createFileSystemWatcher(
+        "**/.tangu/config.data.tan",
+    );
 
-    // #todo consider other TransportKinds?
+    const statusSubscription = new ServerStatusSubscription();
 
-    // #todo make logging level a client option?
+    context.subscriptions.push(
+        clientOutputChannel,
+        serverTraceOutputChannel,
+        evalOutputChannel,
+        tanWatcher,
+        configWatcher,
+        statusSubscription,
+    );
 
-    // #todo RA_LOG trace does _not_ work, investigate.
-    // Control server logging level.
-    const env = Object.assign({}, process.env);
-    Object.assign(env, { RUST_LOG: "trace" });
+    const startLanguageClient = async (): Promise<void> => {
+        const serverPath = resolveServerBinary();
+        if (!serverPath) {
+            statusSubscription.setStatus("👅 Missing Server");
+            clientOutputChannel.appendLine(
+                "Cannot find `tangu-language-server`. Install the Tangu toolchain from https://tangu.dev or set `tangu.server.path`.",
+            );
+            const action = await vscode.window.showErrorMessage(
+                "Tangu Language Server (`tangu-language-server`) was not found. Install the Tangu toolchain from https://tangu.dev or configure `tangu.server.path`.",
+                "Configure Path",
+                "Install Instructions",
+            );
+            if (action === "Configure Path") {
+                void vscode.commands.executeCommand(
+                    "workbench.action.openSettings",
+                    "@id:tangu.server.path",
+                );
+            } else if (action === "Install Instructions") {
+                clientOutputChannel.appendLine(
+                    "\nInstall instructions:\n  1. Install the Tangu toolchain from https://tangu.dev\n  2. Ensure `tangu` and `tangu-language-server` are in PATH (or set `tangu.server.path` / `tangu.cli.path`)\n  3. Run 'Tangu: Restart Language Server'.\n",
+                );
+                clientOutputChannel.show(true);
+            }
+            return;
+        }
 
-    if (!executableExists(TANGU_LANGUAGE_SERVER)) {
-        clientOutputChannel.appendLine(
-            "Cannot find the Tangu Language Server, please install with `cargo install tangu-language-server`!",
-        );
-    }
-
-    const serverOptions: ServerOptions = {
-        run: {
-            command: TANGU_LANGUAGE_SERVER,
-            transport: TransportKind.stdio,
-            options: { env },
-        },
-        debug: {
-            command: TANGU_LANGUAGE_SERVER,
-            transport: TransportKind.stdio,
-            options: { env },
-        },
-    };
-
-    const clientOptions: LanguageClientOptions = {
-        documentSelector: [
-            { scheme: "file", language: "tangu" },
-            { scheme: "file", language: "tangu-data" },
-            { scheme: "file", language: "tangu-test" },
-            { scheme: "file", language: "tangu-schema" },
-        ],
-        traceOutputChannel: serverTraceOutputChannel,
-        synchronize: {
-            fileEvents: workspace.createFileSystemWatcher("**/*.tan"),
-        },
-        middleware: {
-            provideCodeLenses: async (document, token, next) => {
-                const lenses = await next(document, token);
-                if (!lenses) {
-                    return lenses;
-                }
-                for (const lens of lenses) {
-                    const cmd = lens.command;
-                    if (
-                        cmd &&
-                        cmd.command === "editor.action.showReferences" &&
-                        Array.isArray(cmd.arguments) &&
-                        cmd.arguments.length >= 3
-                    ) {
-                        const rawUri = cmd.arguments[0];
-                        const rawPos = cmd.arguments[1];
-                        const rawLocs = cmd.arguments[2];
-
-                        const toVsUri = (u: any): vscode.Uri => {
-                            if (u instanceof vscode.Uri) {
-                                return u;
-                            }
-                            if (typeof u === "string") {
-                                return vscode.Uri.parse(u);
-                            }
-                            if (u && typeof u.external === "string") {
-                                return vscode.Uri.parse(u.external);
-                            }
-                            if (u && typeof u.path === "string") {
-                                return vscode.Uri.file(u.path);
-                            }
-                            return document.uri;
-                        };
-
-                        const toVsPosition = (p: any): vscode.Position => {
-                            if (p instanceof vscode.Position) {
-                                return p;
-                            }
-                            if (p && typeof p.lineNumber === "number" && typeof p.column === "number") {
-                                return new vscode.Position(
-                                    Math.max(0, p.lineNumber - 1),
-                                    Math.max(0, p.column - 1),
-                                );
-                            }
-                            if (p && typeof p.line === "number" && typeof p.character === "number") {
-                                return new vscode.Position(p.line, p.character);
-                            }
-                            return new vscode.Position(0, 0);
-                        };
-
-                        const toVsRange = (r: any): vscode.Range => {
-                            if (r instanceof vscode.Range) {
-                                return r;
-                            }
-                            if (
-                                r &&
-                                typeof r.startLineNumber === "number" &&
-                                typeof r.startColumn === "number" &&
-                                typeof r.endLineNumber === "number" &&
-                                typeof r.endColumn === "number"
-                            ) {
-                                return new vscode.Range(
-                                    Math.max(0, r.startLineNumber - 1),
-                                    Math.max(0, r.startColumn - 1),
-                                    Math.max(0, r.endLineNumber - 1),
-                                    Math.max(0, r.endColumn - 1),
-                                );
-                            }
-                            if (r && r.start && r.end) {
-                                return new vscode.Range(
-                                    toVsPosition(r.start),
-                                    toVsPosition(r.end),
-                                );
-                            }
-                            return new vscode.Range(0, 0, 0, 0);
-                        };
-
-                        const uri = toVsUri(rawUri);
-                        const pos = toVsPosition(rawPos);
-                        const locs = Array.isArray(rawLocs)
-                            ? rawLocs.map(
-                                  (loc: any) =>
-                                      loc instanceof vscode.Location
-                                          ? loc
-                                          : new vscode.Location(
-                                                toVsUri(loc.uri),
-                                                toVsRange(loc.range),
-                                            ),
-                              )
-                            : [];
-
-                        cmd.arguments = [uri, pos, locs];
-                    }
-                }
-                return lenses;
+        const env = getServerEnv();
+        const serverOptions: ServerOptions = {
+            run: {
+                command: serverPath,
+                transport: TransportKind.stdio,
+                options: { env },
             },
-        },
+            debug: {
+                command: serverPath,
+                transport: TransportKind.stdio,
+                options: { env },
+            },
+        };
+
+        const clientOptions: LanguageClientOptions = {
+            documentSelector: buildDocumentSelector(),
+            traceOutputChannel: serverTraceOutputChannel,
+            synchronize: {
+                fileEvents: [tanWatcher, configWatcher],
+            },
+            middleware: createCodeLensMiddleware(),
+        };
+
+        const nextClient = new LanguageClient(
+            "tangu",
+            "Tangu Language",
+            serverOptions,
+            clientOptions,
+        );
+        client = nextClient;
+        statusSubscription.attach(nextClient);
+
+        try {
+            await nextClient.start();
+            await pushServerConfiguration(clientOutputChannel);
+            clientOutputChannel.appendLine(
+                `Tangu LSP Client started using: ${serverPath}`,
+            );
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            statusSubscription.setStatus("👅 Error");
+            clientOutputChannel.appendLine(
+                `Failed to start Tangu Language Server: ${message}`,
+            );
+            void vscode.window.showErrorMessage(
+                `Tangu Language Server failed to start: ${message}`,
+            );
+        }
     };
 
-    context.subscriptions.push(vscode.commands.registerCommand(
-        "tangu.openREPL",
-        () => {
-            clientOutputChannel.appendLine("Open REPL");
-            openREPLTerminal();
-        },
-    ));
-
-    context.subscriptions.push(vscode.commands.registerCommand(
-        RUN_FULL_WORKSPACE_DIAGNOSTICS_VSCODE_COMMAND,
-        () => requestFullWorkspaceDiagnostics(clientOutputChannel),
-    ));
-
-    context.subscriptions.push(
-        vscode.commands.registerCommand("tangu.expandMacro", async () => {
-            const editor = vscode.window.activeTextEditor;
-            if (!editor) {
-                void vscode.window.showWarningMessage("No active editor.");
-                return;
-            }
-
-            if (!client) {
-                void vscode.window.showErrorMessage("Tangu language server is not ready yet.");
-                return;
-            }
-
-            const position = editor.selection.active;
-            const uri = editor.document.uri.toString();
-
-            try {
-                const response = await client.sendRequest<{
-                    uri: string;
-                    range?: vscode.Range;
-                    original: string;
-                    expanded: string;
-                    success: boolean;
-                    message?: string;
-                }>("workspace/executeCommand", {
-                    command: EXPAND_MACRO_SERVER_COMMAND,
-                    arguments: [{ uri, position: { line: position.line, character: position.character } }],
-                });
-
-                if (response && response.success) {
-                    const content = `; Macro Expansion of:\n; ${response.original.split("\n").join("\n; ")}\n\n${response.expanded}\n`;
-                    const doc = await vscode.workspace.openTextDocument({
-                        language: "tangu",
-                        content,
-                    });
-                    await vscode.window.showTextDocument(doc, {
-                        viewColumn: vscode.ViewColumn.Beside,
-                        preview: true,
-                    });
-                } else {
-                    const msg = response?.message ?? "Could not expand macro at cursor.";
-                    void vscode.window.showWarningMessage(`Tangu: ${msg}`);
+    const restartServer = async (): Promise<void> => {
+        if (isRestarting) {
+            return;
+        }
+        isRestarting = true;
+        statusSubscription.setStatus("👅 Restarting...");
+        try {
+            if (client) {
+                const oldClient = client;
+                client = undefined;
+                try {
+                    await oldClient.stop();
+                } catch {
+                    // Ignore stop error when restarting a failed server
                 }
-            } catch (error) {
-                const message = error instanceof Error ? error.message : "Unknown error";
-                clientOutputChannel.appendLine(`Failed to expand macro: ${message}`);
-                void vscode.window.showErrorMessage(`Tangu: Failed to expand macro: ${message}`);
+                oldClient.dispose();
+            }
+            await startLanguageClient();
+        } finally {
+            isRestarting = false;
+        }
+    };
+
+    const ensureCliOrNotify = (): string | undefined => {
+        const cliPath = resolveCliBinary();
+        if (!cliPath) {
+            void vscode.window.showErrorMessage(
+                "Tangu CLI (`tangu`) not found. Configure `tangu.cli.path` or add it to PATH.",
+                "Configure Path",
+            ).then((choice) => {
+                if (choice === "Configure Path") {
+                    void vscode.commands.executeCommand(
+                        "workbench.action.openSettings",
+                        "@id:tangu.cli.path",
+                    );
+                }
+            });
+        }
+        return cliPath;
+    };
+
+    const evalReplManager = new TanguEvalReplManager({
+        getClient: () => client,
+        resolveCliPath: resolveCliBinary,
+        evalOutputChannel,
+    });
+    evalReplManager.registerCommands(context);
+
+    const previewProvider = new TanguPreviewProvider({
+        getClient: () => client,
+        resolveCliPath: resolveCliBinary,
+    });
+    previewProvider.register(context);
+
+    const testController = new TanguTestController({
+        resolveCliPath: resolveCliBinary,
+        outputChannel: clientOutputChannel,
+    });
+    testController.register(context);
+
+    const taskProvider = new TanguTaskProvider(resolveCliBinary);
+    context.subscriptions.push(
+        vscode.tasks.registerTaskProvider("tangu", taskProvider),
+    );
+
+    registerSexpCommands(context);
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            "tangu.requestFullWorkspaceDiagnostics",
+            () => requestFullWorkspaceDiagnostics(clientOutputChannel),
+        ),
+        vscode.commands.registerCommand("tangu.restartServer", () =>
+            restartServer(),
+        ),
+        vscode.commands.registerCommand("tangu.openServerLogs", () => {
+            if (client?.outputChannel) {
+                client.outputChannel.show(true);
+            } else {
+                clientOutputChannel.show(true);
+            }
+        }),
+        vscode.commands.registerCommand("tangu.showStatusMenu", async () => {
+            const pick = await vscode.window.showQuickPick(
+                [
+                    { label: "$(refresh) Restart Language Server", command: "tangu.restartServer" },
+                    {
+                        label: "$(checklist) Run Full Workspace Diagnostics",
+                        command: "tangu.requestFullWorkspaceDiagnostics",
+                    },
+                    { label: "$(terminal) Open REPL Terminal", command: "tangu.openREPL" },
+                    { label: "$(beaker) Run Changed Tests", command: "tangu.runChangedTests" },
+                    {
+                        label: "$(sparkle) Fix & Format Current File",
+                        command: "tangu.runFix",
+                    },
+                    { label: "$(pulse) Run Environment Doctor", command: "tangu.runDoctor" },
+                    { label: "$(output) Open Server Logs", command: "tangu.openServerLogs" },
+                    { label: "$(gear) Open Tangu Settings", command: "__settings__" },
+                ],
+                { placeHolder: "Tangu Language Actions" },
+            );
+            if (!pick) {
+                return;
+            }
+            if (pick.command === "__settings__") {
+                void vscode.commands.executeCommand(
+                    "workbench.action.openSettings",
+                    "@ext:tangu-dev.vscode-tangu",
+                );
+            } else {
+                void vscode.commands.executeCommand(pick.command);
+            }
+        }),
+        vscode.commands.registerCommand("tangu.runFix", async () => {
+            if (!vscode.workspace.isTrusted) {
+                void vscode.window.showWarningMessage(
+                    "Tangu fix is disabled in Restricted Mode.",
+                );
+                return;
+            }
+            const editor = vscode.window.activeTextEditor;
+            if (!editor || editor.document.uri.scheme !== "file") {
+                void vscode.window.showWarningMessage(
+                    "Tangu: Save the file to disk before running `tangu fix`.",
+                );
+                return;
+            }
+            const cliPath = ensureCliOrNotify();
+            if (!cliPath) {
+                return;
+            }
+            if (editor.document.isDirty) {
+                await editor.document.save();
+            }
+            const filePath = editor.document.uri.fsPath;
+            const res = await runTanguCli({
+                cliPath,
+                args: ["fix", "--auto-import", "--no-color", filePath],
+                cwd: path.dirname(filePath),
+                timeoutMs: 20_000,
+            });
+            if (res.exitCode === 0) {
+                void vscode.window.setStatusBarMessage("Tangu: File fixed & formatted.", 3000);
+            } else {
+                const details = (res.stderr || res.stdout).trim();
+                if (details) {
+                    clientOutputChannel.appendLine(`[tangu fix]\n${details}`);
+                    clientOutputChannel.show(true);
+                }
+                void vscode.window.showWarningMessage(
+                    "Tangu: `tangu fix` reported issues. See Tangu Language Client output.",
+                );
+            }
+        }),
+        vscode.commands.registerCommand("tangu.runDoctor", async () => {
+            if (!vscode.workspace.isTrusted) {
+                void vscode.window.showWarningMessage(
+                    "Tangu doctor is disabled in Restricted Mode.",
+                );
+                return;
+            }
+            const cliPath = ensureCliOrNotify();
+            if (!cliPath) {
+                return;
+            }
+            const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+            const res = await runTanguCli({
+                cliPath,
+                args: ["doctor", "--no-color"],
+                cwd,
+                timeoutMs: 15_000,
+            });
+            clientOutputChannel.appendLine("=== tangu doctor ===");
+            clientOutputChannel.appendLine((res.stdout || res.stderr).trimEnd());
+            clientOutputChannel.appendLine("");
+            clientOutputChannel.show(true);
+        }),
+        vscode.commands.registerCommand("tangu.runFile", async () => {
+            if (!vscode.workspace.isTrusted) {
+                void vscode.window.showWarningMessage(
+                    "Running Tangu files is disabled in Restricted Mode.",
+                );
+                return;
+            }
+            const editor = vscode.window.activeTextEditor;
+            if (!editor || editor.document.uri.scheme !== "file") {
+                void vscode.window.showWarningMessage(
+                    "Tangu: Open and save a `.tan` file on disk to run it.",
+                );
+                return;
+            }
+            const cliPath = ensureCliOrNotify();
+            if (!cliPath) {
+                return;
+            }
+            if (editor.document.isDirty) {
+                await editor.document.save();
+            }
+            const filePath = editor.document.uri.fsPath;
+            const cwd = path.dirname(filePath);
+            const task = new vscode.Task(
+                { type: "tangu", command: "run", args: [filePath] },
+                vscode.workspace.getWorkspaceFolder(editor.document.uri) ??
+                    vscode.TaskScope.Workspace,
+                `run ${path.basename(filePath)}`,
+                "tangu",
+                new vscode.ProcessExecution(cliPath, ["run", filePath], { cwd }),
+                "$tangu",
+            );
+            task.presentationOptions = {
+                reveal: vscode.TaskRevealKind.Always,
+                panel: vscode.TaskPanelKind.Shared,
+                clear: true,
+            };
+            await vscode.tasks.executeTask(task);
+        }),
+        vscode.workspace.onDidChangeConfiguration(async (event) => {
+            if (
+                event.affectsConfiguration("tangu.server.path") ||
+                event.affectsConfiguration("tangu.server.extraEnv") ||
+                event.affectsConfiguration("tangu.server.logLevel")
+            ) {
+                const choice = await vscode.window.showInformationMessage(
+                    "Tangu Language Server settings changed. Restart the server to apply?",
+                    "Restart Server",
+                );
+                if (choice === "Restart Server") {
+                    await restartServer();
+                }
+            } else if (
+                event.affectsConfiguration("tangu.lint") ||
+                event.affectsConfiguration("tangu.format") ||
+                event.affectsConfiguration("tangu.diagnostics")
+            ) {
+                await pushServerConfiguration(clientOutputChannel);
             }
         }),
     );
 
-    context.subscriptions.push(
-        vscode.commands.registerCommand("tangu.syntaxTree", () => {
-            // #todo
-        }),
-    );
-
-    client = new LanguageClient(
-        "tangu",
-        "Tangu Language",
-        serverOptions,
-        clientOptions,
-    );
-
-    client.start();
-
-    context.subscriptions.push(
-        new ServerStatusSubscription(client, clientOutputChannel),
-    );
-
-    //   // debugging.
-    //   for (const tg of vscode.window.tabGroups.all) {
-    //     for (const t of tg.tabs) {
-    //       clientOutputChannel.appendLine(t.label);
-    //     }
-    //   }
-
-    // #insight no need for js outline provider, the LSP handles this!
-    //   const outlineProvider = new OutlineProvider();
-    //   vscode.window.registerTreeDataProvider("outline", outlineProvider);
-
-    clientOutputChannel.appendLine(
-        "Tangu LSP Client initialized.",
-    );
+    await startLanguageClient();
 }
 
 /** Deactivates the extension. */
-export function deactivate(): Thenable<void> | undefined {
-    if (!client) {
-        return undefined;
+export async function deactivate(): Promise<void> {
+    if (client) {
+        const running = client;
+        client = undefined;
+        await running.stop();
     }
-
-    return client.stop();
 }

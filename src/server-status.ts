@@ -1,37 +1,49 @@
 import * as vscode from "vscode";
 import { Disposable, StatusBarItem } from "vscode";
 import { LanguageClient, State } from "vscode-languageclient/node";
-import { publishServerStatusType } from "./lsp-custom-protocol";
+import {
+    legacyPublishServerStatusType,
+    publishServerStatusType,
+} from "./lsp-custom-protocol";
 
-// #todo what is a good name for this class?
+/** Manages the `👅` Language Server status bar item across server restarts. */
 export class ServerStatusSubscription implements Disposable {
-    private subscriptions: Disposable[] = [];
+    private clientSubscriptions: Disposable[] = [];
     private item: StatusBarItem;
 
-    constructor(
-        client: LanguageClient,
-        private readonly _clientOutputChannel: vscode.OutputChannel,
-    ) {
+    constructor() {
         this.item = vscode.window.createStatusBarItem(
             vscode.StatusBarAlignment.Left,
         );
         this.item.text = "👅 Starting...";
-        this.item.tooltip = "Tangu server";
+        this.item.tooltip = "Tangu Language Server — Click for actions";
+        this.item.command = "tangu.showStatusMenu";
         this.item.show();
+    }
 
-        this.subscriptions.push(
-            client.onNotification(
-                publishServerStatusType,
-                (notification) => {
-                    this.item.text = notification.text;
-                },
-            ),
-        );
+    /** Updates the status bar text directly (e.g., when binary is missing or restarting). */
+    public setStatus(text: string): void {
+        this.item.text = text;
+    }
 
-        this.subscriptions.push(
+    /** Attaches status listeners to a LanguageClient instance, replacing any previous listeners. */
+    public attach(client: LanguageClient): void {
+        this.detachClient();
+
+        const onStatus = (notification: { text: string }) => {
+            if (notification?.text) {
+                this.item.text = notification.text;
+            }
+        };
+
+        this.clientSubscriptions.push(
+            client.onNotification(publishServerStatusType, onStatus),
+            client.onNotification(legacyPublishServerStatusType, onStatus),
             client.onDidChangeState((event) => {
                 if (event.newState === State.Running) {
                     this.item.text = "👅";
+                } else if (event.newState === State.Starting) {
+                    this.item.text = "👅 Starting...";
                 } else if (event.newState === State.Stopped) {
                     this.item.text = "👅 Stopped";
                 }
@@ -39,11 +51,16 @@ export class ServerStatusSubscription implements Disposable {
         );
     }
 
-    public dispose() {
-        for (const subscription of this.subscriptions) {
-            subscription.dispose();
+    private detachClient(): void {
+        for (const sub of this.clientSubscriptions) {
+            sub.dispose();
         }
-        this.item.dispose();
+        this.clientSubscriptions = [];
+    }
+
+    public dispose(): void {
+        this.detachClient();
         this.item.hide();
+        this.item.dispose();
     }
 }
